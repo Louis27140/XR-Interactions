@@ -1,0 +1,20 @@
+{
+  "name": "com.louis.template",
+  "displayName": "Louis - Template",
+  "version": "0.1.0",
+  "description": "Package unity template",
+  "unity": "6.0.2",
+  "author": {
+    "name": "Louis"
+  },
+  "license": "MIT",
+  "keywords": [
+    "unity",
+    "tools"
+  ],
+  "dependencies": {
+  },
+  "publishConfig": {
+    "registry": "http://192.168.1.47:3000/api/packages/louis/npm/"
+  }
+}

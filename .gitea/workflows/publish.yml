@@ -1,0 +1,29 @@
+name: Publish Unity Package
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    runs-on: gitea-runners
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "http://192.168.1.47:3000/api/packages/louis/npm"
+          always-auth: true
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Debug npm config (temporaire)
+        run: |
+          npm config get registry
+          npm config list
+
+      - name: Publish
+        run: npm publish
