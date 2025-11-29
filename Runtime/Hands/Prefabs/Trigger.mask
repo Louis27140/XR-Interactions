@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!319 &31900000
+AvatarMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Trigger
+  m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  m_Elements:
+  - m_Path: 
+    m_Weight: 1
+  - m_Path: Armature
+    m_Weight: 1
+  - m_Path: Armature/HandMain
+    m_Weight: 1
+  - m_Path: Armature/HandMain/IndexRoot
+    m_Weight: 1
+  - m_Path: Armature/HandMain/IndexRoot/IndexF_lower
+    m_Weight: 1
+  - m_Path: Armature/HandMain/IndexRoot/IndexF_lower/IndexF_middle
+    m_Weight: 1
+  - m_Path: Armature/HandMain/IndexRoot/IndexF_lower/IndexF_middle/IndexF_tip
+    m_Weight: 1
+  - m_Path: Armature/HandMain/IndexRoot/IndexF_lower/IndexF_middle/IndexF_tip/IndexF_tip_end
+    m_Weight: 1
+  - m_Path: Armature/HandMain/MiddleRoot
+    m_Weight: 0
+  - m_Path: Armature/HandMain/MiddleRoot/MiddleF_lower
+    m_Weight: 1
+  - m_Path: Armature/HandMain/MiddleRoot/MiddleF_lower/MiddleF_middle
+    m_Weight: 1
+  - m_Path: Armature/HandMain/MiddleRoot/MiddleF_lower/MiddleF_middle/MiddleF_tip
+    m_Weight: 1
+  - m_Path: Armature/HandMain/MiddleRoot/MiddleF_lower/MiddleF_middle/MiddleF_tip/MiddleF_tip_end
+    m_Weight: 1
+  - m_Path: Armature/HandMain/PinkyRoot
+    m_Weight: 0
+  - m_Path: Armature/HandMain/PinkyRoot/PinkyF_lower
+    m_Weight: 1
+  - m_Path: Armature/HandMain/PinkyRoot/PinkyF_lower/PinkyF_middle
+    m_Weight: 1
+  - m_Path: Armature/HandMain/PinkyRoot/PinkyF_lower/PinkyF_middle/PinkyF_tip
+    m_Weight: 1
+  - m_Path: Armature/HandMain/PinkyRoot/PinkyF_lower/PinkyF_middle/PinkyF_tip/PinkyF_tip_end
+    m_Weight: 1
+  - m_Path: Armature/HandMain/RingRoot
+    m_Weight: 0
+  - m_Path: Armature/HandMain/RingRoot/RingF_lower
+    m_Weight: 1
+  - m_Path: Armature/HandMain/RingRoot/RingF_lower/RingF_middle
+    m_Weight: 1
+  - m_Path: Armature/HandMain/RingRoot/RingF_lower/RingF_middle/RingF_tip
+    m_Weight: 1
+  - m_Path: Armature/HandMain/RingRoot/RingF_lower/RingF_middle/RingF_tip/RingF_tip_end
+    m_Weight: 1
+  - m_Path: Armature/HandMain/ThumbRoot
+    m_Weight: 1
+  - m_Path: Armature/HandMain/ThumbRoot/ThumbMiddle
+    m_Weight: 1
+  - m_Path: Armature/HandMain/ThumbRoot/ThumbMiddle/ThumbTop
+    m_Weight: 1
+  - m_Path: Armature/HandMain/ThumbRoot/ThumbMiddle/ThumbTop/ThumbTop_end
+    m_Weight: 1
+  - m_Path: Hand
+    m_Weight: 1

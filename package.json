@@ -1,9 +1,9 @@
 {
-  "name": "com.louis.template",
-  "displayName": "Louis - Template",
+  "name": "com.louis.xr.interactions",
+  "displayName": "Louis - XR Interactions",
   "version": "0.1.0",
-  "description": "Package unity template",
-  "unity": "6.0.2",
+  "description": "Package unity avec differentes interactions en XR",
+  "unity": "2022.3",
   "author": {
     "name": "Louis"
   },
@@ -13,8 +13,24 @@
     "tools"
   ],
   "dependencies": {
+    "com.louis.xr.core": "0.1.0",
+    "com.unity.xr.interaction.toolkit": "2.6.5"
   },
-  "publishConfig": {
-    "registry": "http://192.168.1.47:3000/api/packages/louis/npm/"
-  }
+  "samples": [
+    {
+      "displayName": "Rig",
+      "description": "Prefab rig",
+      "path": "Samples~/Rig"
+    },
+    {
+      "displayName": "Door",
+      "description": "Prefabs door",
+      "path": "Samples~/Door"
+    },
+    {
+      "displayName": "Teleportation",
+      "description": "Prefabs Teleportation",
+      "path": "Samples~/Teleportation"
+    }
+  ]
 }
