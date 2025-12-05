@@ -1387,10 +1387,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1dcc1289a06b72468713cc07e565df1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  input: {fileID: -944628639613478452, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   provider: {fileID: 2132051773947831401}
-  rightTeleportRay: {fileID: 0}
-  leftTeleportRay: {fileID: 0}
+  leftHand:
+    handSide: 0
+    ray: {fileID: 0}
+    aiming: 0
+  rightHand:
+    handSide: 1
+    ray: {fileID: 0}
+    aiming: 0
+  aimStartThreshold: 0.7
+  aimStopThreshold: 0.2
 --- !u!114 &6056130084446661327
 MonoBehaviour:
   m_ObjectHideFlags: 0

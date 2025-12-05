@@ -1,140 +1,91 @@
+using Louis.XR.Interactions.Input;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
 
-namespace Louis.XR.Interactions.Teleport
+namespace Louis.XR.Interactions.Locomotion
 {
-
-    public class TeleportationManager : MonoBehaviour
+    public class XRTeleportationManager : MonoBehaviour
     {
-        [Header("Input")]
-        [SerializeField] private InputActionAsset input;
+        [System.Serializable]
+        private class HandTeleportation
+        {
+            public XRHandSide handSide = XRHandSide.Right;
+            public XRRayInteractor ray;
 
-        [Header("XR")]
+            [HideInInspector] public bool aiming;
+        }
+
+        [Header("Teleportation Provider")]
         [SerializeField] private TeleportationProvider provider;
-        [SerializeField] private XRRayInteractor rightTeleportRay;
-        [SerializeField] private XRRayInteractor leftTeleportRay;
 
-        private InputAction rightActivate;
-        private InputAction rightCancel;
-        private InputAction leftActivate;
-        private InputAction leftCancel;
+        [Header("Hands")]
+        [SerializeField] private HandTeleportation leftHand = new HandTeleportation { handSide = XRHandSide.Left };
+        [SerializeField] private HandTeleportation rightHand = new HandTeleportation { handSide = XRHandSide.Right };
 
-        private bool isActive;
-        private XRRayInteractor currentRay;
+        [Header("Settings")]
+        [SerializeField] private float aimStartThreshold = 0.7f;
+        [SerializeField] private float aimStopThreshold = 0.2f;
 
         private void Start()
         {
-            rightTeleportRay.enabled = false;
-            leftTeleportRay.enabled = false;
-
-            var rightMap = input.FindActionMap("XRI RightHand Locomotion");
-            var leftMap = input.FindActionMap("XRI LeftHand Locomotion");
-
-            rightActivate = rightMap.FindAction("Teleport Mode Activate");
-            rightCancel = rightMap.FindAction("Teleport Mode Cancel");
-
-            leftActivate = leftMap.FindAction("Teleport Mode Activate");
-            leftCancel = leftMap.FindAction("Teleport Mode Cancel");
-
-            rightActivate.Enable();
-            rightCancel.Enable();
-            leftActivate.Enable();
-            leftCancel.Enable();
-
-            rightActivate.performed += OnRightActivate;
-            rightActivate.canceled += OnTeleportValidate;
-
-            leftActivate.performed += OnLeftActivate;
-            leftActivate.canceled += OnTeleportValidate;
-
-            rightCancel.performed += OnTeleportCancel;
-            leftCancel.performed += OnTeleportCancel;
+            DisableHand(leftHand);
+            DisableHand(rightHand);
         }
 
-        private void OnDestroy()
+        private void DisableHand(HandTeleportation h)
         {
-            rightActivate.performed -= OnRightActivate;
-            rightActivate.canceled -= OnTeleportValidate;
-            leftActivate.performed -= OnLeftActivate;
-            leftActivate.canceled -= OnTeleportValidate;
-            rightCancel.performed -= OnTeleportCancel;
-            leftCancel.performed -= OnTeleportCancel;
+            if (h.ray != null)
+                h.ray.gameObject.SetActive(false);
+
+            h.aiming = false;
         }
 
-        private void OnRightActivate(InputAction.CallbackContext ctx)
+        private void Update()
         {
-            TryActivateTeleport(rightTeleportRay);
-        }
-
-        private void OnLeftActivate(InputAction.CallbackContext ctx)
-        {
-            TryActivateTeleport(leftTeleportRay);
-        }
-
-        private void TryActivateTeleport(XRRayInteractor ray)
-        {
-            // If teleport is already active with the other hand, ignore
-            if (isActive && currentRay != ray)
+            if (provider == null || XRInputRouter.Instance == null)
                 return;
 
-            currentRay = ray;
-            currentRay.enabled = true;
-            isActive = true;
+            UpdateHand(leftHand);
+            UpdateHand(rightHand);
         }
 
-        private void OnTeleportValidate(InputAction.CallbackContext ctx)
+        private void UpdateHand(HandTeleportation h)
         {
-            if (!isActive || currentRay == null)
+            if (h.ray == null)
                 return;
 
-            if (!currentRay.TryGetCurrent3DRaycastHit(out RaycastHit hit))
+            Vector2 stick = XRInputRouter.Instance.Thumbstick(h.handSide);
+
+            // START AIM
+            if (!h.aiming && stick.y > aimStartThreshold)
             {
-                currentRay.enabled = false;
-                currentRay = null;
-                isActive = false;
+                h.aiming = true;
+                h.ray.gameObject.SetActive(true);
                 return;
             }
 
-            if (hit.transform.TryGetComponent<TeleportationAnchor>(out TeleportationAnchor anchor))
+            // AIM LOOP
+            if (h.aiming)
             {
-                anchor.RequestTeleport();
-            }
-            else
-            {
-                // Forward direction of camera, flattened on horizontal plane
-                Transform cam = Camera.main.transform;
-                Vector3 flatForward = cam.forward;
-                flatForward.y = 0f;
-
-                if (flatForward.sqrMagnitude < 0.0001f)
-                    flatForward = cam.parent != null ? cam.parent.forward : Vector3.forward;
-
-                flatForward.Normalize();
-
-                TeleportRequest tpRequest = new TeleportRequest
+                // STOP AIM -> TRY TELEPORT
+                if (stick.y < aimStopThreshold)
                 {
-                    destinationPosition = hit.point,
-                    destinationRotation = Quaternion.LookRotation(flatForward, Vector3.up),
-                    matchOrientation = MatchOrientation.TargetUp
-                };
-
-                provider.QueueTeleportRequest(tpRequest);
+                    TryTeleport(h);
+                    DisableHand(h);
+                }
             }
-
-            currentRay.enabled = false;
-            currentRay = null;
-            isActive = false;
         }
 
-        private void OnTeleportCancel(InputAction.CallbackContext ctx)
+        private void TryTeleport(HandTeleportation h)
         {
-            if (!isActive || currentRay == null)
+            if (!h.ray.TryGetCurrent3DRaycastHit(out var hit))
                 return;
 
-            currentRay.enabled = false;
-            currentRay = null;
-            isActive = false;
+            provider.QueueTeleportRequest(new TeleportRequest
+            {
+                destinationPosition = hit.point,
+                matchOrientation = MatchOrientation.WorldSpaceUp
+            });
         }
     }
 }

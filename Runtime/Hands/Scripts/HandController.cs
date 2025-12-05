@@ -4,41 +4,45 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
-[RequireComponent(typeof(ActionBasedController))]
-public class HandController : MonoBehaviour
+namespace Louis.XR.Interactions.Hands
 {
-    ActionBasedController controller;
 
-    XRDirectInteractor xrGrab;
-
-    private Hand hand;
-
-    private void Awake()
+    [RequireComponent(typeof(ActionBasedController))]
+    public class HandController : MonoBehaviour
     {
-        hand = GetComponentInChildren<Hand>();
-    }
+        ActionBasedController controller;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        controller = GetComponent<ActionBasedController>();
-        xrGrab = GetComponent<XRDirectInteractor>();
-        
-    }
+        XRDirectInteractor xrGrab;
 
-    // Update is called once per frame
-    void Update()
-    {
-        if(hand != null)
-        {
-            hand.SetGrip(controller.selectAction.action.ReadValue<float>());
-            hand.SetTrigger(controller.activateAction.action.ReadValue<float>());
-            bool grabItem = xrGrab.firstInteractableSelected != null ? true : false;
-            hand.SetGrab(grabItem);
-        }
-        else
+        private Hand hand;
+
+        private void Awake()
         {
             hand = GetComponentInChildren<Hand>();
+        }
+
+        // Start is called before the first frame update
+        void Start()
+        {
+            controller = GetComponent<ActionBasedController>();
+            xrGrab = GetComponent<XRDirectInteractor>();
+
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            if (hand != null)
+            {
+                hand.SetGrip(controller.selectAction.action.ReadValue<float>());
+                hand.SetTrigger(controller.activateAction.action.ReadValue<float>());
+                bool grabItem = xrGrab.firstInteractableSelected != null ? true : false;
+                hand.SetGrab(grabItem);
+            }
+            else
+            {
+                hand = GetComponentInChildren<Hand>();
+            }
         }
     }
 }

@@ -1,9 +1,9 @@
 {
-    "name": "XR.Interactions.Teleport",
+    "name": "XR.Interactions.Tools",
     "rootNamespace": "",
     "references": [
-        "GUID:75469ad4d38634e559750d17036d5f7c",
         "GUID:fe685ec1767f73d42b749ea8045bfe43",
+        "GUID:b640f1978703ddf49af40e3c6ca89b0b",
         "GUID:f9474dfff2ec5714cbb2ef28d9a73970"
     ],
     "includePlatforms": [],
