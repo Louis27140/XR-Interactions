@@ -1,0 +1,17 @@
+{
+    "name": "XR.Interactions.Grab.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:97d2ca84aeb88814cb17acc95353cec1",
+        "GUID:190979c3ed6e41c448f5e9925429edf9"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 651793509926756203}
+  - component: {fileID: 4603731613139993447}
   m_Layer: 0
   m_Name: Front
   m_TagString: Untagged
@@ -25,12 +26,31 @@ Transform:
   m_GameObject: {fileID: 143780680622416872}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: -3.7, y: -4.33, z: 16.8}
+  m_LocalPosition: {x: -3.7, y: -4.33, z: 6.64}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 9118005581046537808}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+--- !u!114 &4603731613139993447
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 143780680622416872}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d24051a14bbe3c742accb61c8fd859e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  handside: 2
+  priority: 1
+  anchorTag: 
+  gizmoSphereRadius: 0.01
+  gizmoForwardLength: 0.08
+  gizmoUpLength: 0.05
+  debugSnapRadius: 0.12
 --- !u!1 &387799960584045093
 GameObject:
   m_ObjectHideFlags: 0
@@ -40,6 +60,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4237749922052894380}
+  - component: {fileID: 6191359496983987155}
   m_Layer: 0
   m_Name: Back
   m_TagString: Untagged
@@ -56,12 +77,31 @@ Transform:
   m_GameObject: {fileID: 387799960584045093}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.8, y: -4.33, z: -25.1}
+  m_LocalPosition: {x: -3.8, y: -4.33, z: -6.43}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 9118005581046537808}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6191359496983987155
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 387799960584045093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d24051a14bbe3c742accb61c8fd859e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  handside: 2
+  priority: 1
+  anchorTag: 
+  gizmoSphereRadius: 0.01
+  gizmoForwardLength: 0.08
+  gizmoUpLength: 0.05
+  debugSnapRadius: 0.12
 --- !u!1001 &8574799660733677260
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -70,6 +110,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -8040581164767392521, guid: 7b8a1e5c8a4ddbc4a8b8b75bcd561313, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 8abdd0a9dd4eaf1468d83e314aab475a, type: 2}
     - target: {fileID: -3453340161848835122, guid: 7b8a1e5c8a4ddbc4a8b8b75bcd561313, type: 3}
       propertyPath: m_LocalPosition.x
       value: -3.913
@@ -114,6 +158,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: sliding_door
       objectReference: {fileID: 0}
+    - target: {fileID: 1929140533045131398, guid: 7b8a1e5c8a4ddbc4a8b8b75bcd561313, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 8abdd0a9dd4eaf1468d83e314aab475a, type: 2}
     - target: {fileID: 7544162213907859334, guid: 7b8a1e5c8a4ddbc4a8b8b75bcd561313, type: 3}
       propertyPath: m_Name
       value: Door
@@ -148,7 +196,7 @@ PrefabInstance:
       addedObject: {fileID: 7137532343315072524}
     - targetCorrespondingSourceObject: {fileID: 7544162213907859334, guid: 7b8a1e5c8a4ddbc4a8b8b75bcd561313, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1768879449462980935}
+      addedObject: {fileID: 4241164126974557880}
     - targetCorrespondingSourceObject: {fileID: -757400839514628013, guid: 7b8a1e5c8a4ddbc4a8b8b75bcd561313, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2080650799808080622}
@@ -351,7 +399,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 107.68002, y: 240.49359, z: 5.2021446}
   m_Center: {x: 45.14273, y: 26.296175, z: -0.105970435}
---- !u!114 &1768879449462980935
+--- !u!114 &4241164126974557880
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -360,12 +408,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 2183666703631432010}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4cf0b07c860bec943808a6372d636bd3, type: 3}
+  m_Script: {fileID: 11500000, guid: d39c41bb93309a1498ce4d6c4ea4a32b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_InteractionManager: {fileID: 0}
-  m_Colliders:
-  - {fileID: 2080650799808080622}
+  m_Colliders: []
   m_InteractionLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -462,7 +509,7 @@ MonoBehaviour:
   m_SnapToColliderVolume: 1
   m_ReinitializeDynamicAttachEverySingleGrab: 1
   m_AttachEaseInTime: 0.15
-  m_MovementType: 0
+  m_MovementType: 2
   m_VelocityDamping: 1
   m_VelocityScale: 1
   m_AngularVelocityDamping: 1
@@ -479,7 +526,7 @@ MonoBehaviour:
   m_SmoothScale: 0
   m_SmoothScaleAmount: 8
   m_TightenScale: 0.1
-  m_ThrowOnDetach: 0
+  m_ThrowOnDetach: 1
   m_ThrowSmoothingDuration: 0.25
   m_ThrowSmoothingCurve:
     serializedVersion: 2
@@ -504,11 +551,24 @@ MonoBehaviour:
   m_StartingSingleGrabTransformers: []
   m_StartingMultipleGrabTransformers: []
   m_AddDefaultGrabTransformers: 1
-  frontHandleAttach: {fileID: 651793509926756203}
-  backHandleAttach: {fileID: 4237749922052894380}
-  LHand: {fileID: 0}
-  RHand: {fileID: 0}
-  doorColliders: []
+  directLogic:
+    rid: 3463635570439225344
+  remoteLogic:
+    rid: -2
+  useHandle: 1
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 3463635570439225344
+      type: {class: DirectAnchorLogic, ns: , asm: XR.Interactions.Grab}
+      data:
+        movementOverride: 0
+        maxSnapDistance: 0.12
+        useAngle: 0
+        maxAngle: 60
+        angleWeight: 0.5
 --- !u!1 &3013511145081864810 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6858395882063314086, guid: 7b8a1e5c8a4ddbc4a8b8b75bcd561313, type: 3}

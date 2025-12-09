@@ -22,9 +22,6 @@ namespace Louis.Interactions.Hands {
         private float speed = 2.5f;
 
         [SerializeField]
-        private Transform attachPoint;
-
-        [SerializeField]
         private Transform fingerTip;
 
         private XRDirectInteractor controller;
@@ -44,9 +41,6 @@ namespace Louis.Interactions.Hands {
             pokeInteractorGO.GetComponent<XRPokeInteractor>().attachTransform = fingerTip;
 
             pokeInteractorGO.transform.parent = transform.parent;
-
-
-            controller.attachTransform = attachPoint;
 
             handMeshRenderer = GetComponentInChildren<SkinnedMeshRenderer>();
             handCollider = GetComponentInChildren<MeshCollider>();
