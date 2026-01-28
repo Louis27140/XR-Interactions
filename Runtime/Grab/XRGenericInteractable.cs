@@ -321,12 +321,13 @@ namespace Louis.XR.Interactions.Grab
         private XRContext BuildContext(IXRSelectInteractor interactor)
         {
             var comp = (Component)interactor;
+            bool isRay = interactor is XRRayInteractor;
 
             var ctx = new XRContext
             {
                 interactor = interactor,
                 interactable = this,
-                hand = GetHandUsageByName(comp.transform),
+                hand = GetHandUsageFromInteractor(interactor),
 
                 interactorPosition = comp.transform.position,
                 interactorRotation = comp.transform.rotation,
@@ -335,7 +336,7 @@ namespace Louis.XR.Interactions.Grab
                 anchors = anchors,
 
                 deltaTime = Time.deltaTime,
-                isRemote = interactor is XRRayInteractor,
+                isRemote = isRay,
                 isHeld = isSelected,
                 manager = interactionManager
             };
@@ -343,14 +344,29 @@ namespace Louis.XR.Interactions.Grab
             return ctx;
         }
 
-        private HandUsage GetHandUsageByName(Transform t)
+        private HandUsage GetHandUsageFromInteractor(IXRSelectInteractor interactor)
         {
-            var name = t.name;
+            // Utiliser la propriété Handedness native de XRBaseInteractable
+            var baseInteractor = interactor as XRBaseInteractor;
+            if (baseInteractor != null)
+            {
+                switch (baseInteractor.handedness)
+                {
+                    case InteractorHandedness.Left:
+                        return HandUsage.Left;
+                    case InteractorHandedness.Right:
+                        return HandUsage.Right;
+                    case InteractorHandedness.None:
+                    default:
+                        return HandUsage.Both;
+                }
+            }
 
-            if (name.Contains("Left"))
+            // Fallback: parser le nom si Handedness n'est pas disponible
+            string name = interactor.transform.name.ToLower();
+            if (name.Contains("left"))
                 return HandUsage.Left;
-
-            if (name.Contains("Right"))
+            if (name.Contains("right"))
                 return HandUsage.Right;
 
             return HandUsage.Both;
@@ -358,6 +374,14 @@ namespace Louis.XR.Interactions.Grab
 
         private XRHandSide DetermineHand(IXRInteractor interactor)
         {
+            // Utiliser Handedness si disponible
+            var baseInteractor = interactor as XRBaseInteractor;
+            if (baseInteractor != null)
+            {
+                return baseInteractor.handedness == InteractorHandedness.Left ? XRHandSide.Left : XRHandSide.Right;
+            }
+
+            // Fallback: parser le nom
             string name = interactor.transform.name.ToLower();
             return name.Contains("left") ? XRHandSide.Left : XRHandSide.Right;
         }
@@ -382,7 +406,7 @@ namespace Louis.XR.Interactions.Grab
                 // Fill base XRContext fields from primary interactor
                 interactor = primary,
                 interactable = this,
-                hand = GetHandUsageByName(primaryComp.transform),
+                hand = GetHandUsageFromInteractor(primary),
                 interactorPosition = primaryComp.transform.position,
                 interactorRotation = primaryComp.transform.rotation,
                 attachTransform = attachTransform,
@@ -397,7 +421,7 @@ namespace Louis.XR.Interactions.Grab
                 secondaryInteractor = secondary,
                 secondaryInteractorPosition = secondaryComp.transform.position,
                 secondaryInteractorRotation = secondaryComp.transform.rotation,
-                secondaryHand = GetHandUsageByName(secondaryComp.transform)
+                secondaryHand = GetHandUsageFromInteractor(secondary)
             };
 
             // Calculate two-hand specific data

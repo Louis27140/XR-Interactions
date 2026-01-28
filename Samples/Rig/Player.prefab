@@ -1662,6 +1662,11 @@ MonoBehaviour:
     aiming: 0
   aimStartThreshold: 0.7
   aimStopThreshold: 0.2
+  teleportInput:
+    inputName: 
+    inputType: 0
+    priority: 100
+    contextMask: -1
 --- !u!1 &4344809138560919990
 GameObject:
   m_ObjectHideFlags: 0
@@ -4815,22 +4820,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb65c22cbd45a314d9a3e3bc821f64c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  contextSettings: {fileID: 0}
+  enableDebugLogs: 0
+  showDebugInfo: 0
   leftMapName: LouisXR LeftHand
   rightMapName: LouisXR RightHand
-  triggerName: Trigger
-  gripName: Grip
-  primaryName: Primary
-  secondaryName: Secondary
-  thumbstickName: Thumbstick
-  thumbstickClickName: Thumbstick Click
-  triggerTouchName: Trigger Touch
-  gripTouchName: Grip Touch
-  primaryTouchName: Primary Touch
-  secondaryTouchName: Secondary Touch
-  menuName: Menu
-  hapticDeviceName: Haptic Device
-  hapticTriggerName: Haptic Trigger
-  hapticThumbstickName: Haptic Thumbstick
 --- !u!114 &2260388985906194319
 MonoBehaviour:
   m_ObjectHideFlags: 0

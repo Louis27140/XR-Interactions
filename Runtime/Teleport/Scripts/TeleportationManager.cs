@@ -1,3 +1,4 @@
+using Louis.Core.Input;
 using Louis.XR.Interactions.Input;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
@@ -29,6 +30,8 @@ namespace Louis.XR.Interactions.Locomotion
         [SerializeField] private float aimStartThreshold = 0.7f;
         [SerializeField] private float aimStopThreshold = 0.2f;
 
+        [SerializeField] private Vector2InputDefinition teleportInput;
+
         private void Start()
         {
             DisableHand(leftHand);
@@ -57,7 +60,7 @@ namespace Louis.XR.Interactions.Locomotion
             if (h.ray == null)
                 return;
 
-            Vector2 stick = XRInputRouter.Instance.Thumbstick(h.handSide);
+            Vector2 stick = teleportInput.GetValue((int)h.handSide);
 
             // START AIM
             if (!h.aiming && stick.y > aimStartThreshold)

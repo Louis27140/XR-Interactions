@@ -1,8 +1,8 @@
 {
   "name": "com.louis.xr.interactions",
   "displayName": "Louis - XR Interactions",
-  "version": "0.1.0",
-  "description": "Package unity avec differentes interactions en XR",
+  "version": "0.0.1",
+  "description": "Comprehensive VR interaction system providing grab mechanics, teleportation, inventory management, and input handling with support for direct, remote, and socket-based interactions. Includes haptics feedback, multi-grip support, and extensive editor tools for seamless VR development.",
   "unity": "2022.3",
   "author": {
     "name": "Louis"
@@ -10,10 +10,12 @@
   "license": "MIT",
   "keywords": [
     "unity",
-    "tools"
+    "interactions",
+    "tools",
+    "xr"
   ],
   "dependencies": {
-    "com.louis.xr.core": "0.1.0",
+    "com.louis.xr.core": "0.0.1",
     "com.unity.xr.interaction.toolkit": "3.2.2"
   },
   "samples": [

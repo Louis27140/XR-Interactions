@@ -1,3 +1,4 @@
+using Louis.Core.Input;
 using Louis.Core.Tools;
 using Louis.XR.Interactions.Input;
 using System;
@@ -5,6 +6,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace Louis.XR.Interactions.Tools
 {
@@ -12,9 +15,11 @@ namespace Louis.XR.Interactions.Tools
     public class XRTriggerToolHandler : MonoBehaviour
     {
         [Header("XR Grabbale Trigger Tool")]
-        [SerializeField] private UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable grab;
+        [SerializeField] private XRGrabInteractable grab;
 
         [SerializeField] private float pressTreshold = 0.1f;
+
+        [SerializeField] private FloatInputDefinition triggerInput = new FloatInputDefinition("Trigger");
 
         private ITriggerTool tool;
         private bool isHeld = false;
@@ -23,14 +28,14 @@ namespace Louis.XR.Interactions.Tools
 
         private void Reset()
         {
-            grab = GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>();
+            grab = GetComponent<XRGrabInteractable>();
             tool = GetComponent<ITriggerTool>();
         }
 
         private void Awake()
         {
             if (grab == null)
-                grab = GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>();
+                grab = GetComponent<XRGrabInteractable>();
             if (tool == null)
                 tool = GetComponent<ITriggerTool>();
         }
@@ -55,27 +60,29 @@ namespace Louis.XR.Interactions.Tools
 
         private void OnSelectEntered(SelectEnterEventArgs args)
         {
-            if (args.interactorObject is UnityEngine.XR.Interaction.Toolkit.Interactors.XRSocketInteractor)
+            if (args.interactorObject is XRSocketInteractor)
                 return;
 
             isHeld = true;
             wasPressed = false;
 
-            Debug.Log($"[{gameObject.name}] Grab entered - isHeld = true", this);
-
-            // D�tection de la main � partir du nom de l'interactor (Left / Right)
-            string interactorName = args.interactorObject.transform.name.ToLower();
-            if (interactorName.Contains("left"))
-                currentHandSide = XRHandSide.Left;
-            else if (interactorName.Contains("right"))
-                currentHandSide = XRHandSide.Right;
-            else
-                currentHandSide = XRHandSide.Right;
+            switch(args.interactorObject.handedness)
+            {
+                case InteractorHandedness.Left:
+                    currentHandSide = XRHandSide.Left;
+                    break;
+                case InteractorHandedness.Right:
+                    currentHandSide = XRHandSide.Right;
+                    break;
+                default:
+                    currentHandSide = XRHandSide.Right;
+                    break;
+            }
         }
 
         private void OnSelectExited(SelectExitEventArgs args)
         {
-            if (args.interactorObject is UnityEngine.XR.Interaction.Toolkit.Interactors.XRSocketInteractor)
+            if (args.interactorObject is XRSocketInteractor)
                 return;
 
             isHeld = false;
@@ -85,15 +92,14 @@ namespace Louis.XR.Interactions.Tools
 
             wasPressed = false;
 
-            Debug.Log($"[{gameObject.name}] Grab exited - isHeld = false", this);
         }
 
         void Update()
         {
-            if (!isHeld || tool == null || XRInputRouter.Instance == null)
+            if (!isHeld || tool == null || triggerInput == null)
                 return;
 
-            float value = XRInputRouter.Instance.TriggerValue(currentHandSide);
+            float value = triggerInput.GetValue((int)currentHandSide);
             bool isPressed = value >= pressTreshold;
 
             if (isPressed && !wasPressed)

@@ -1,6 +1,6 @@
 {
     "name": "XR.Interactions",
-    "rootNamespace": "",
+    "rootNamespace": "Louis.XR.Interactions",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

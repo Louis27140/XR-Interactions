@@ -5,12 +5,13 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace Louis.XR.Interactions.Inventory
 {
     public class InventoryShelfSlot : MonoBehaviour
     {
-        [SerializeField] private UnityEngine.XR.Interaction.Toolkit.Interactors.XRSocketInteractor socket;
+        [SerializeField] private XRSocketInteractor socket;
         [SerializeField] private Transform snapPoint;
         [SerializeField] private InventoryBehaviour inventoryBehaviour;
 

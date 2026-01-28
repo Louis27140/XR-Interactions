@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Louis.Core.Input;
 using Louis.XR.Core.Utils.Positioning;
 using Louis.XR.Interactions.Input;
 using Louis.XR.Interactions.Utils.Rig;
@@ -28,7 +29,8 @@ namespace Louis.XR.Interactions.Inventory
 
         [Header("Input")]
         [SerializeField] private XRHandSide handType = XRHandSide.Left;
-        [SerializeField] private bool useSecondaryButton = true;
+
+        [SerializeField] private BoolInputDefinition toggleInventoryInput;
 
         private bool isVisible = false;
         private float animationTimer = 0f;
@@ -41,7 +43,26 @@ namespace Louis.XR.Interactions.Inventory
             XRRigReference.Instance != null
                 ? (useHeadReference ? XRRigReference.Instance.Camera : XRRigReference.Instance.Rig)
                 : null;
-        
+
+        void OnEnable()
+        {
+            if (toggleInventoryInput != null)
+            {
+                // Définir la main (0=Left, 1=Right)
+                toggleInventoryInput.SetChannel((int)handType);
+                Debug.Log($"[InventoryShelfController] Assigned toggle input to {handType} hand.");
+                toggleInventoryInput.OnPressed += OnToggleInventory;
+            }
+        }
+
+        void OnDisable()
+        {
+            if (toggleInventoryInput != null)
+            {
+                toggleInventoryInput.OnPressed -= OnToggleInventory;
+            }
+        }
+
         private void Awake()
         {
             if (shelf == null)
@@ -67,33 +88,6 @@ namespace Louis.XR.Interactions.Inventory
             }
         }
 
-        private void OnEnable()
-        {
-            if (useSecondaryButton)
-            {
-                XRInputRouter.Instance.RegisterSecondaryButtonPress(handType, OnToggleInventory);
-            }
-            else
-            {
-                XRInputRouter.Instance.RegisterPrimaryButtonPress(handType, OnToggleInventory);
-            }
-        }
-
-        private void OnDisable()
-        {
-            if (XRInputRouter.Instance != null)
-            {
-                if (useSecondaryButton)
-                {
-                    XRInputRouter.Instance.UnregisterSecondaryButtonPress(handType, OnToggleInventory);
-                }
-                else
-                {
-                    XRInputRouter.Instance.UnregisterPrimaryButtonPress(handType, OnToggleInventory);
-                }
-            }
-        }
-
         private void Update()
         {
             // Animation d'échelle
@@ -113,6 +107,7 @@ namespace Louis.XR.Interactions.Inventory
 
         private void OnToggleInventory()
         {
+
             isVisible = !isVisible;
             animationTimer = 0f;
             

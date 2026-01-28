@@ -4,16 +4,23 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using Louis.XR.Interactions.Input;
 using Louis.XR.Interactions.Grab.Logic;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using Louis.Core.Input;
+using Louis.XR.Interactions.Utils.Anchors;
 
 public class RemoteGrabWithRotationLogic : XRRemoteLogicBase
 {
-    public bool isRotating = false;
-    private float currentDistance; // Stocke la distance courante
+    [Header("Input Definitions")]
+    [SerializeField] private Vector2InputDefinition joystickInput;
+    [SerializeField] private BoolInputDefinition toggleRotationInput;
+    [SerializeField] private BoolInputDefinition resetInput;
 
+    [Header("Settings")]
+    public bool isRotating = false;
     public float speed = 1f;
     public float rotationSpeed = 100.0f; // Degrés par seconde
 
-    private XRRayInteractor remoteInteractor;
+    [Header("Runtime State")]
+    private float currentDistance; // Stocke la distance courante
     private bool wasButtonPressed = false; // Pour détecter l'edge du bouton
 
     // Stocker les valeurs originales pour les restaurer
@@ -24,10 +31,12 @@ public class RemoteGrabWithRotationLogic : XRRemoteLogicBase
     {
         base.OnSelectEntering(context);
 
+        // IMPORTANT: Pousser le contexte "Grab" pour désactiver les autres inputs (shelf, etc.)
+        // Index 4 = "Grab" selon InputContextSettings
+        XRInputRouter.PushContext(4);
+
         // Initialiser la distance courante au moment du grab
         currentDistance = Vector3.Distance(context.interactor.transform.position, context.interactable.transform.position);
-
-        remoteInteractor = context.interactor as XRRayInteractor;
 
         // Sauvegarder les valeurs originales
         originalMovementType = context.interactable.movementType;
@@ -57,12 +66,28 @@ public class RemoteGrabWithRotationLogic : XRRemoteLogicBase
     {
         if (context.interactor is not XRRayInteractor) return;
 
+        // Validation des InputDefinitions
+        if (joystickInput == null || toggleRotationInput == null || resetInput == null)
+        {
+            Debug.LogWarning("[RemoteGrabWithRotation] InputDefinitions not assigned in Inspector!");
+            return;
+        }
 
-        // Get input values through the existing XRInputRouter
-        var handSide = remoteInteractor.name.Contains("Left") ? XRHandSide.Left : XRHandSide.Right;
-        Vector2 joystickInput = XRInputRouter.Instance.Thumbstick(handSide);
-        bool buttonPressed = XRInputRouter.Instance.PrimaryHeld(handSide); // État actuel du bouton
-        bool joystickClicked = XRInputRouter.Instance.ThumbstickClicked(handSide);
+        // Lire les inputs avec le channel dynamique depuis context.hand
+        // Le claiming est automatique avec la priorité configurée dans l'Inspector
+        // context.hand est un HandUsage (Left=1, Right=2) donc on doit convertir en XRHandSide (Left=0, Right=1)
+        int channel = (int)context.hand - 1; // Left(1)→0, Right(2)→1
+        
+        // Sécurité : vérifier que le channel est valide
+        if (channel < 0 || channel > 1)
+        {
+            Debug.LogWarning($"[RemoteGrabWithRotation] Invalid channel {channel} from hand {context.hand}");
+            return;
+        }
+        
+        Vector2 joystickValue = joystickInput.GetValue(channel);
+        bool buttonPressed = toggleRotationInput.GetValue(channel);
+        bool joystickClicked = resetInput.GetValue(channel);
 
         // Détection de l'edge (transition de non-pressé à pressé)
         if (buttonPressed && !wasButtonPressed)
@@ -91,8 +116,8 @@ public class RemoteGrabWithRotationLogic : XRRemoteLogicBase
         {
             // Joystick Y (haut/bas) → rotation sur axe X local (pitch)
             // Joystick X (gauche/droite) → rotation sur axe Y WORLD (yaw)
-            float pitchRotation = -joystickInput.y * rotationSpeed * context.deltaTime;
-            float yawRotation = joystickInput.x * rotationSpeed * context.deltaTime;
+            float pitchRotation = -joystickValue.y * rotationSpeed * context.deltaTime;
+            float yawRotation = joystickValue.x * rotationSpeed * context.deltaTime;
 
             Debug.Log($"Applying rotation - Pitch: {pitchRotation}, Yaw: {yawRotation}");
 
@@ -105,7 +130,7 @@ public class RemoteGrabWithRotationLogic : XRRemoteLogicBase
         else
         {
             // Accumuler la distance basée sur l'input vertical
-            currentDistance += joystickInput.y * speed * context.deltaTime;
+            currentDistance += joystickValue.y * speed * context.deltaTime;
             currentDistance = Mathf.Max(0.1f, currentDistance); // Empêcher distance négative
 
             // Calculer la nouvelle position à la distance stockée
@@ -135,12 +160,13 @@ public class RemoteGrabWithRotationLogic : XRRemoteLogicBase
         base.OnSelectExited(context);
         isRotating = false;
 
+        // IMPORTANT: Retirer le contexte "Grab" pour réactiver les autres inputs
+        XRInputRouter.PopContext();
+
         // Restaurer les paramètres originaux au release
         context.interactable.trackRotation = originalTrackRotation;
         context.interactable.movementType = originalMovementType;
 
         Debug.Log("[RemoteGrabWithRotation] Object released - settings restored");
-
-        remoteInteractor = null;
     }
 }
