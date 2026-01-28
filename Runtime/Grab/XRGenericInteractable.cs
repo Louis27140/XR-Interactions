@@ -1,6 +1,15 @@
+using Louis.XR.Interactions.Grab.Logic;
+using Louis.XR.Interactions.Grab.Logic.Direct;
+using Louis.XR.Interactions.Grab.Logic.Remote;
+using Louis.XR.Interactions.Grab.Logic.Socket;
+using Louis.XR.Interactions.Input;
+using Louis.XR.Interactions.Input.Feedback;
+using Louis.XR.Interactions.Utils.Anchors;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace Louis.XR.Interactions.Grab
 {
@@ -14,24 +23,64 @@ namespace Louis.XR.Interactions.Grab
         [SerializeReference]
         public XRRemoteLogicBase remoteLogic;
 
-        // Tous les XRAnchor trouvés sous cet objet
+        [SerializeReference]
+        public XRSocketLogicBase socketLogic;
+
         private readonly List<XRAnchor> anchors = new List<XRAnchor>();
 
         [SerializeField] private bool useHandle = false;
 
         public bool UseHandle => useHandle;
 
+        [SerializeField]
+        [Tooltip("Allows or blocks grab (direct and remote).")]
+        private bool allowGrab = true;
+
+        public bool AllowGrab
+        {
+            get => allowGrab;
+            set => allowGrab = value;
+        }
+
+        [Header("Haptics Feedback")]
+        [SerializeField] private XRHapticPreset onGrabPreset;
+        [SerializeField] private XRHapticPreset onReleasePreset;
+        [SerializeField] private XRHapticPreset onHoverPreset;
+
         protected override void Awake()
         {
             base.Awake();
 
-            // Sécurise un attachTransform valide
             if (attachTransform == null)
                 attachTransform = transform;
 
-            // Récupère les anchors enfants (si tu gardes XRAnchor en Mono)
             anchors.Clear();
             anchors.AddRange(GetComponentsInChildren<XRAnchor>(true));
+
+            // Enable multi-selection mode if using TwoHandDirectLogic
+            if (directLogic is TwoHandDirectLogic)
+            {
+                selectMode = InteractableSelectMode.Multiple;
+            }
+            else
+            {
+                Debug.LogWarning($"[XRGenericInteractable] {name} - DirectLogic is NOT TwoHandDirectLogic (is: {directLogic?.GetType().Name ?? "NULL"})");
+            }
+
+            var rb = GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                if (rb.mass <= 0)
+                {
+                    rb.mass = 1f;
+                }
+
+                var colliders = GetComponentsInChildren<Collider>();
+                if (colliders.Length == 0)
+                {
+                    Debug.LogError($"[XRGenericInteractable] {name} n'a aucun Collider !", this);
+                }
+            }
         }
 
         private void FixedUpdate()
@@ -59,6 +108,11 @@ namespace Louis.XR.Interactions.Grab
 
             bool isRay = interactor is XRRayInteractor;
 
+            if (!allowGrab && !(interactor is XRSocketInteractor))
+            {
+                return false;
+            }
+
             if (isRay)
             {
                 return remoteLogic != null;
@@ -70,16 +124,31 @@ namespace Louis.XR.Interactions.Grab
         public override bool IsSelectableBy(IXRSelectInteractor interactor)
         {
             if (!base.IsSelectableBy(interactor))
+            {
                 return false;
+            }
 
             bool isRay = interactor is XRRayInteractor;
+            bool isSocket = interactor is XRSocketInteractor;
+
+            if (isSocket)
+            {
+                return socketLogic != null;
+            }
+
+            if (!allowGrab)
+            {
+                return false;
+            }
 
             if (!isRay && directLogic != null)
             {
                 var ctx = BuildContext(interactor);
                 ctx.isRemote = false;
                 ctx.isHeld = isSelected;
-                return directLogic.CanSelect(ctx);
+                bool canSelect = directLogic.CanSelect(ctx);
+                Debug.Log($"[XRGenericInteractable] {name} - directLogic.CanSelect returned: {canSelect}");
+                return canSelect;
             }
 
             return true;
@@ -87,17 +156,23 @@ namespace Louis.XR.Interactions.Grab
 
         protected override void OnSelectEntering(SelectEnterEventArgs args)
         {
+            Debug.Log($"[XRGenericInteractable] OnSelectEntering called on {name}");
 
             var interactor = args.interactorObject as IXRSelectInteractor;
 
             if (interactor != null)
             {
                 bool isRay = interactor is XRRayInteractor;
+                bool isSocket  = interactor is XRSocketInteractor;
                 var ctx = BuildContext(interactor);
                 ctx.isRemote = isRay;
 
+                Debug.Log($"[XRGenericInteractable] {name} - Calling logic OnSelectEntering - IsRay: {isRay}, IsSocket: {isSocket}");
+
                 if (isRay)
                     remoteLogic?.OnSelectEntering(ctx);
+                else if (isSocket)
+                    socketLogic?.OnSelectEntering(ctx);
                 else
                 {
                     movementType = directLogic.movementOverride;
@@ -119,61 +194,128 @@ namespace Louis.XR.Interactions.Grab
                 return;
 
             bool isRay = interactor is XRRayInteractor;
+            bool isSocket = interactor is XRSocketInteractor;
             var ctx = BuildContext(interactor);
             ctx.isRemote = isRay;
 
             if (isRay)
                 remoteLogic?.OnSelectEntered(ctx);
+            else if (isSocket)
+                socketLogic?.OnSelectEntered(ctx);
             else
                 directLogic?.OnSelectEntered(ctx);
 
 
             base.OnSelectEntered(args);
 
+            // Detect second hand grab for two-hand mode
+            if (directLogic is TwoHandDirectLogic twoHandLogic && interactorsSelecting.Count >= 2)
+            {
+                var multiCtx = BuildMultiContext();
+                if (multiCtx != null)
+                {
+                    twoHandLogic.OnSecondHandGrabbed(multiCtx);
+                }
+            }
+
+            XRHandSide hand = DetermineHand(args.interactorObject);
+
+            // Jouer feedback haptique
+            if (onGrabPreset != null)
+            {
+                XRHaptic.Instance?.PlayPreset(onGrabPreset, hand);
+            } else
+            {
+                XRHaptic.Instance?.PlayGrabFeedback(hand);
+            }
+
 
         }
 
         public override void ProcessInteractable(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
-            base.ProcessInteractable(updatePhase); // d’abord
+            base.ProcessInteractable(updatePhase);
 
             if (!isSelected)
                 return;
 
+            // Check for two-hand grab mode
+            if (directLogic is TwoHandDirectLogic twoHandLogic && interactorsSelecting.Count >= 2)
+            {
+                var multiCtx = BuildMultiContext();
+                if (multiCtx != null)
+                {
+                    twoHandLogic.ProcessMulti(multiCtx);
+                    return;  // Skip single-hand logic
+                }
+            }
+
+            // Single-hand logic (existing code)
             if (firstInteractorSelecting is not IXRSelectInteractor interactor)
                 return;
 
             bool isRay = interactor is XRRayInteractor;
+            bool isSocket = interactor is XRSocketInteractor;
             var ctx = BuildContext(interactor);
             ctx.isRemote = isRay;
 
             if (isRay)
                 remoteLogic?.Process(ctx);
+            else if (isSocket)
+                socketLogic?.Process(ctx);
             else
                 directLogic?.Process(ctx);
-
-            
-
-
         }
 
         protected override void OnSelectExited(SelectExitEventArgs args)
         {
             var interactor = args.interactorObject as IXRSelectInteractor;
 
+            // Detect second hand release for two-hand mode (before base.OnSelectExited)
+            if (directLogic is TwoHandDirectLogic twoHandLogic && interactor != null)
+            {
+                // Check if it's the second hand being released (not the primary)
+                if (interactorsSelecting.Count >= 2 && interactorsSelecting[1] == interactor)
+                {
+                    twoHandLogic.OnSecondHandReleased();
+                }
+            }
+
             if (interactor != null)
             {
                 bool isRay = interactor is XRRayInteractor;
+                bool isSocket = interactor is XRSocketInteractor;
+
                 var ctx = BuildContext(interactor);
                 ctx.isRemote = isRay;
 
                 if (isRay)
                     remoteLogic?.OnSelectExited(ctx);
+                else if (isSocket)
+                    socketLogic?.OnSelectExited(ctx);
                 else
                     directLogic?.OnSelectExited(ctx);
             }
 
             base.OnSelectExited(args);
+
+
+            XRHandSide hand = DetermineHand(args.interactorObject);
+            if (onReleasePreset != null)
+            {
+                XRHaptic.Instance?.PlayPreset(onReleasePreset, hand);
+            }
+        }
+
+        protected override void OnHoverEntered(HoverEnterEventArgs args)
+        {
+            base.OnHoverEntered(args);
+
+            XRHandSide hand = DetermineHand(args.interactorObject);
+            if (onHoverPreset != null)
+            {
+                XRHaptic.Instance?.PlayPreset(onHoverPreset, hand);
+            }
         }
 
         private XRContext BuildContext(IXRSelectInteractor interactor)
@@ -212,6 +354,58 @@ namespace Louis.XR.Interactions.Grab
                 return HandUsage.Right;
 
             return HandUsage.Both;
+        }
+
+        private XRHandSide DetermineHand(IXRInteractor interactor)
+        {
+            string name = interactor.transform.name.ToLower();
+            return name.Contains("left") ? XRHandSide.Left : XRHandSide.Right;
+        }
+
+        /// <summary>
+        /// Builds a multi-interactor context for two-hand grab interactions.
+        /// Returns null if less than 2 interactors are selecting.
+        /// </summary>
+        private XRMultiContext BuildMultiContext()
+        {
+            if (interactorsSelecting.Count < 2)
+                return null;
+
+            var primary = interactorsSelecting[0];
+            var secondary = interactorsSelecting[1];
+
+            var primaryComp = (Component)primary;
+            var secondaryComp = (Component)secondary;
+
+            var ctx = new XRMultiContext
+            {
+                // Fill base XRContext fields from primary interactor
+                interactor = primary,
+                interactable = this,
+                hand = GetHandUsageByName(primaryComp.transform),
+                interactorPosition = primaryComp.transform.position,
+                interactorRotation = primaryComp.transform.rotation,
+                attachTransform = attachTransform,
+                anchors = anchors,
+                deltaTime = Time.deltaTime,
+                isRemote = false,
+                isHeld = isSelected,
+                manager = interactionManager,
+
+                // Fill XRMultiContext fields for secondary interactor
+                allInteractors = new List<IXRSelectInteractor>(interactorsSelecting),
+                secondaryInteractor = secondary,
+                secondaryInteractorPosition = secondaryComp.transform.position,
+                secondaryInteractorRotation = secondaryComp.transform.rotation,
+                secondaryHand = GetHandUsageByName(secondaryComp.transform)
+            };
+
+            // Calculate two-hand specific data
+            ctx.centerPosition = (ctx.interactorPosition + ctx.secondaryInteractorPosition) * 0.5f;
+            ctx.handsDirection = (ctx.secondaryInteractorPosition - ctx.interactorPosition).normalized;
+            ctx.handsDistance = Vector3.Distance(ctx.interactorPosition, ctx.secondaryInteractorPosition);
+
+            return ctx;
         }
     }
 }

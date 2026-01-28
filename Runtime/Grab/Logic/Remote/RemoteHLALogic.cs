@@ -1,8 +1,10 @@
 using System;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
-namespace Louis.XR.Interactions.Grab
+
+namespace Louis.XR.Interactions.Grab.Logic.Remote
 {
     [Serializable]
     public class RemoteHLALogic : XRRemoteLogicBase
@@ -21,7 +23,7 @@ namespace Louis.XR.Interactions.Grab
         public bool useArc = true;
         public float arcHeight = 0.2f;
 
-        private XRGrabInteractable grab;
+        private UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable grab;
         private Rigidbody rb;
 
         private XRRayInteractor ray;

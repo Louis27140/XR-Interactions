@@ -1,20 +1,21 @@
 using Louis.Interactions.Hands;
-using System.Collections;
-using System.Collections.Generic;
+using Louis.XR.Interactions.Input;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace Louis.XR.Interactions.Hands
 {
 
-    [RequireComponent(typeof(ActionBasedController))]
     public class HandController : MonoBehaviour
     {
-        ActionBasedController controller;
+
+        public XRHandSide handSide = XRHandSide.Right;
 
         XRDirectInteractor xrGrab;
 
         private Hand hand;
+
+        public GameObject model;
 
         private void Awake()
         {
@@ -24,7 +25,6 @@ namespace Louis.XR.Interactions.Hands
         // Start is called before the first frame update
         void Start()
         {
-            controller = GetComponent<ActionBasedController>();
             xrGrab = GetComponent<XRDirectInteractor>();
 
         }
@@ -34,8 +34,8 @@ namespace Louis.XR.Interactions.Hands
         {
             if (hand != null)
             {
-                hand.SetGrip(controller.selectAction.action.ReadValue<float>());
-                hand.SetTrigger(controller.activateAction.action.ReadValue<float>());
+                hand.SetGrip(XRInputRouter.Instance.GripValue(handSide));
+                hand.SetTrigger(XRInputRouter.Instance.TriggerValue(handSide));
                 bool grabItem = xrGrab.firstInteractableSelected != null ? true : false;
                 hand.SetGrab(grabItem);
             }

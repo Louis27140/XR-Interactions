@@ -1,11 +1,8 @@
-using Louis.XR.Interactions.Grab;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using static UnityEngine.XR.Interaction.Toolkit.XRBaseInteractable;
 
-namespace Louis.XR.Interactions.Grab
+using System;
+using static UnityEngine.XR.Interaction.Toolkit.Interactables.XRBaseInteractable;
+
+namespace Louis.XR.Interactions.Grab.Logic
 {
     [Serializable]
     public class XRDirectLogicBase

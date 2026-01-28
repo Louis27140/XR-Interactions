@@ -2,21 +2,21 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace Louis.XR.Interactions.Grab {
-
+namespace Louis.XR.Interactions.Grab.Logic.Direct
+{
     [Serializable]
     public class DirectLogic : XRDirectLogicBase
     {
         public override void OnSelectEntered(XRContext ctx)
         {
-            // ne touche à RIEN
-            // XRGrabInteractable gère déjà l'attach, la pose, etc.
+            base.OnSelectEntered(ctx);
         }
 
         public override void Process(XRContext ctx)
         {
-            // aucun override
+            base.Process(ctx);
         }
 
         public override void OnSelectExited(XRContext ctx)

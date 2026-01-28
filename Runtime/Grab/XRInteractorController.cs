@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace Louis.XR.Interactions.Grab
 {
@@ -71,7 +72,7 @@ namespace Louis.XR.Interactions.Grab
 
         private void EnableHandleMode(Transform anchor)
         {
-            // désactiver la main dynamique
+            // dï¿½sactiver la main dynamique
             if (dynamicHand != null)
                 dynamicHand.SetActive(false);
 

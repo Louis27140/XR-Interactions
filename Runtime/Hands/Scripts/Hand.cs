@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
+
 
 
 namespace Louis.Interactions.Hands {
@@ -24,7 +24,7 @@ namespace Louis.Interactions.Hands {
         [SerializeField]
         private Transform fingerTip;
 
-        private XRDirectInteractor controller;
+        private UnityEngine.XR.Interaction.Toolkit.Interactors.XRDirectInteractor controller;
 
         private MeshCollider handCollider;
         private SkinnedMeshRenderer handMeshRenderer;
@@ -35,10 +35,10 @@ namespace Louis.Interactions.Hands {
         void Start()
         {
             anim = GetComponent<Animator>();
-            controller = GetComponentInParent<XRDirectInteractor>();
+            controller = GetComponentInParent<UnityEngine.XR.Interaction.Toolkit.Interactors.XRDirectInteractor>();
 
-            GameObject pokeInteractorGO = new GameObject("Poke Interactor", typeof(XRPokeInteractor));
-            pokeInteractorGO.GetComponent<XRPokeInteractor>().attachTransform = fingerTip;
+            GameObject pokeInteractorGO = new GameObject("Poke Interactor", typeof(UnityEngine.XR.Interaction.Toolkit.Interactors.XRPokeInteractor));
+            pokeInteractorGO.GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactors.XRPokeInteractor>().attachTransform = fingerTip;
 
             pokeInteractorGO.transform.parent = transform.parent;
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Louis.XR.Interactions.Grab
+namespace Louis.XR.Interactions.Grab.Logic
 {
     [Serializable]
     public class XRRemoteLogicBase

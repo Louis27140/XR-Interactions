@@ -1,0 +1,23 @@
+{
+    "name": "XR.Interactions.inventory",
+    "rootNamespace": "",
+    "references": [
+        "GUID:fe685ec1767f73d42b749ea8045bfe43",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:ffc92b3b9e31b954c9f56461ef7c951f",
+        "GUID:97d2ca84aeb88814cb17acc95353cec1",
+        "GUID:f9474dfff2ec5714cbb2ef28d9a73970",
+        "GUID:9137877264c354c4e8cd390933224cd0",
+        "GUID:1215013541062bd43b268474cc9e64d4",
+        "GUID:70f4442c45835c9488cadbd547817136"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

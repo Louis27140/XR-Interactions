@@ -1,6 +1,9 @@
 using Louis.XR.Interactions.Input;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
+
+
 
 namespace Louis.XR.Interactions.Locomotion
 {
@@ -84,7 +87,7 @@ namespace Louis.XR.Interactions.Locomotion
             provider.QueueTeleportRequest(new TeleportRequest
             {
                 destinationPosition = hit.point,
-                matchOrientation = MatchOrientation.WorldSpaceUp
+                matchOrientation = MatchOrientation.WorldSpaceUp,
             });
         }
     }

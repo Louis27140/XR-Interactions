@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Louis.XR.Interactions.Grab.Logic;
 using UnityEditor;
 using UnityEngine;
 
@@ -59,7 +60,7 @@ namespace Louis.XR.Interactions.Grab.Editor
                 }
             }
 
-            // petit espace sous le bloc pour éviter de coller la prop suivante
+            // petit espace sous le bloc pour ï¿½viter de coller la prop suivante
             return h + v * 2f;
         }
 
@@ -73,7 +74,7 @@ namespace Louis.XR.Interactions.Grab.Editor
             float lineH = EditorGUIUtility.singleLineHeight;
             float v = EditorGUIUtility.standardVerticalSpacing;
 
-            // --- 1) Prépare la liste de noms avec "(None)" ----
+            // --- 1) Prï¿½pare la liste de noms avec "(None)" ----
             string[] displayNames;
             if (_typeNames != null && _typeNames.Length > 0)
             {

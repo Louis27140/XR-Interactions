@@ -1,4 +1,5 @@
 using Louis.Interactions.Hands;
+using Louis.XR.Interactions.Hands;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using UnityEngine.XR.Interaction.Toolkit;
 namespace Louis.XR.Interactions.Grab
 {
 
-    public class XRHandleInteractable : XRGrabInteractable
+    public class XRHandleInteractable : UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable
     {
         [SerializeField] private Transform frontHandleAttach;
         [SerializeField] private Transform backHandleAttach;
@@ -93,7 +94,7 @@ namespace Louis.XR.Interactions.Grab
             restoreRoutine = null;
         }
 
-        private void EnableIgnoreCollisions(IXRInteractor interactor)
+        private void EnableIgnoreCollisions(UnityEngine.XR.Interaction.Toolkit.Interactors.IXRInteractor interactor)
         {
             Debug.Log("EnableIgnoreCollisions called");
 
@@ -118,37 +119,37 @@ namespace Louis.XR.Interactions.Grab
             }
         }
 
-        private Collider GetInteractorCollider(IXRInteractor interactor)
+        private Collider GetInteractorCollider(UnityEngine.XR.Interaction.Toolkit.Interactors.IXRInteractor interactor)
         {
-            var controller = interactor.transform.GetComponent<ActionBasedController>();
+            var controller = interactor.transform.GetComponent<HandController>();
             if (controller == null || controller.model == null) return null;
 
             var hand = controller.model.GetComponent<Hand>();
             return hand != null ? hand.GetCollider() : null;
         }
 
-        private Transform GetHandleAttachForInteractor(IXRInteractor interactor)
+        private Transform GetHandleAttachForInteractor(UnityEngine.XR.Interaction.Toolkit.Interactors.IXRInteractor interactor)
         {
             if (frontHandleAttach == null && backHandleAttach == null)
-                return attachTransform; // fallback sécu
+                return attachTransform; // fallback sï¿½cu
 
             Vector3 handPos = interactor.transform.position;
 
-            // Cas avec une seule poignée définie
+            // Cas avec une seule poignï¿½e dï¿½finie
             if (frontHandleAttach != null && backHandleAttach == null)
                 return frontHandleAttach;
 
             if (backHandleAttach != null && frontHandleAttach == null)
                 return backHandleAttach;
 
-            // Deux poignées -> on prend la plus proche
+            // Deux poignï¿½es -> on prend la plus proche
             float distFront = Vector3.Distance(handPos, frontHandleAttach.position);
             float distBack = Vector3.Distance(handPos, backHandleAttach.position);
 
             return distFront <= distBack ? frontHandleAttach : backHandleAttach;
         }
 
-        private void AppearHandOnHandle(IXRInteractor interactor)
+        private void AppearHandOnHandle(UnityEngine.XR.Interaction.Toolkit.Interactors.IXRInteractor interactor)
         {
             bool isLeft = interactor.transform.name.Contains("Left");
             bool isRight = interactor.transform.name.Contains("Right");
@@ -157,10 +158,10 @@ namespace Louis.XR.Interactions.Grab
 
             GameObject hand = isLeft ? LHand : RHand;
 
-            interactor.transform.GetComponent<ActionBasedController>().model.GetComponent<Hand>().ToggleMesh(false);
+            interactor.transform.GetComponent<HandController>().model.GetComponent<Hand>().ToggleMesh(false);
             hand.SetActive(true);
 
-            // On récupère la pose depuis le dico
+            // On rï¿½cupï¿½re la pose depuis le dico
             string key = GetPoseKey(isLeft);
             Transform pose = GetHandlePose(key);
 
@@ -173,13 +174,13 @@ namespace Louis.XR.Interactions.Grab
             }
             else
             {
-                // fallback si pas de pose trouvée
+                // fallback si pas de pose trouvï¿½e
                 hand.transform.localPosition = Vector3.zero;
                 hand.transform.localRotation = Quaternion.identity;
             }
         }
 
-        private void DisappearHandOnHandle(IXRInteractor interactor)
+        private void DisappearHandOnHandle(UnityEngine.XR.Interaction.Toolkit.Interactors.IXRInteractor interactor)
         {
             bool isLeft = interactor.transform.name.Contains("Left");
             bool isRight = interactor.transform.name.Contains("Right");
@@ -190,13 +191,13 @@ namespace Louis.XR.Interactions.Grab
 
             hand.transform.SetParent(null);
 
-            interactor.transform.GetComponent<ActionBasedController>().model.GetComponent<Hand>().ToggleMesh(true);
+            interactor.transform.GetComponent<HandController>().model.GetComponent<Hand>().ToggleMesh(true);
             hand.SetActive(false);
         }
 
         private string GetPoseKey(bool isLeft)
         {
-            // On considère que si attachTransform == frontHandleAttach -> front, sinon back
+            // On considï¿½re que si attachTransform == frontHandleAttach -> front, sinon back
             bool isFront = (attachTransform == frontHandleAttach);
 
             // Noms attendus : LFront, LBack, RFront, RBack
@@ -209,7 +210,7 @@ namespace Louis.XR.Interactions.Grab
             if (handleAttachPoints.TryGetValue(key, out var pose))
                 return pose;
 
-            Debug.LogWarning($"[XRHandleInteractable] Pose '{key}' non trouvée sur {name}. Fallback sur attachTransform.");
+            Debug.LogWarning($"[XRHandleInteractable] Pose '{key}' non trouvï¿½e sur {name}. Fallback sur attachTransform.");
             return null;
         }
 

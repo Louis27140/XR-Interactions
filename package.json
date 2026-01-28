@@ -14,23 +14,28 @@
   ],
   "dependencies": {
     "com.louis.xr.core": "0.1.0",
-    "com.unity.xr.interaction.toolkit": "2.6.5"
+    "com.unity.xr.interaction.toolkit": "3.2.2"
   },
   "samples": [
     {
       "displayName": "Rig",
       "description": "Prefab rig",
-      "path": "Samples~/Rig"
+      "path": "Samples/Rig"
     },
     {
       "displayName": "Door",
       "description": "Prefabs door",
-      "path": "Samples~/Door"
+      "path": "Samples/Door"
     },
     {
       "displayName": "Teleportation",
       "description": "Prefabs Teleportation",
-      "path": "Samples~/Teleportation"
+      "path": "Samples/Teleportation"
+    },
+    {
+      "displayName": "Inventory",
+      "description": "Prefabs Inventory",
+      "path": "Samples/Inventory"
     }
   ]
 }

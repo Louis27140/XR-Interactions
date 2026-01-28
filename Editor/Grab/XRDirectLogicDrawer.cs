@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Louis.XR.Interactions.Grab.Logic;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,168 +11,144 @@ namespace Louis.XR.Interactions.Grab.Editor
     [CustomPropertyDrawer(typeof(XRDirectLogicBase), true)]
     public class XRDirectLogicDrawer : PropertyDrawer
     {
-        private static Type[] _types;
-        private static string[] _typeNames;
+        private static Type[] _cachedTypes;
+        private static string[] _cachedTypeNames;
 
-        private void EnsureTypes()
+        private void EnsureTypesCache()
         {
-            if (_types != null) return;
+            if (_cachedTypes != null) return;
 
-            var list = new List<Type>();
-
-            foreach (var t in TypeCache.GetTypesDerivedFrom<XRDirectLogicBase>())
+            var types = new List<Type>();
+            foreach (var type in TypeCache.GetTypesDerivedFrom<XRDirectLogicBase>())
             {
-                if (!t.IsAbstract && !t.IsGenericType && t.IsClass)
-                    list.Add(t);
+                if (!type.IsAbstract && !type.IsGenericType && type.IsClass)
+                    types.Add(type);
             }
 
-            _types = list.ToArray();
-            _typeNames = _types.Select(t => t.Name).ToArray();
+            _cachedTypes = types.OrderBy(t => t.Name).ToArray();
+            _cachedTypeNames = _cachedTypes.Select(t => ObjectNames.NicifyVariableName(t.Name)).ToArray();
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            float lineH = EditorGUIUtility.singleLineHeight;
-            float v = EditorGUIUtility.standardVerticalSpacing;
+            float height = EditorGUIUtility.singleLineHeight;
+            float spacing = EditorGUIUtility.standardVerticalSpacing;
 
-            // 1) ligne du popup (toujours)
-            float h = lineH;
-
-            // Si pas d'instance -> juste popup + marge bas
             if (property.managedReferenceValue == null)
-                return h + v; // <-- padding bas
+                return height + spacing;
 
-            // 2) ligne du foldout
-            h += v + lineH;
+            height += spacing + EditorGUIUtility.singleLineHeight;
 
-            // 3) enfants si expanded
             if (property.isExpanded)
             {
-                var copy = property.Copy();
-                var end = copy.GetEndProperty();
-                bool first = true;
+                SerializedProperty iterator = property.Copy();
+                SerializedProperty end = iterator.GetEndProperty();
+                bool enterChildren = true;
 
-                while (copy.NextVisible(first) && !SerializedProperty.EqualContents(copy, end))
+                while (iterator.NextVisible(enterChildren) && !SerializedProperty.EqualContents(iterator, end))
                 {
-                    float childH = EditorGUI.GetPropertyHeight(copy, true);
-                    h += childH + v;
-                    first = false;
+                    height += EditorGUI.GetPropertyHeight(iterator, true) + spacing;
+                    enterChildren = false;
                 }
             }
 
-            // petit espace sous le bloc pour éviter de coller la prop suivante
-            return h + v * 2f;
+            return height + spacing;
         }
-
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            EnsureTypes();
+            EnsureTypesCache();
 
             EditorGUI.BeginProperty(position, label, property);
 
-            float lineH = EditorGUIUtility.singleLineHeight;
-            float v = EditorGUIUtility.standardVerticalSpacing;
+            float lineHeight = EditorGUIUtility.singleLineHeight;
+            float spacing = EditorGUIUtility.standardVerticalSpacing;
+            Rect currentRect = new Rect(position.x, position.y, position.width, lineHeight);
 
-            // --- 1) Prépare la liste de noms avec "(None)" ----
-            string[] displayNames;
-            if (_typeNames != null && _typeNames.Length > 0)
+            string[] displayNames = new string[_cachedTypeNames.Length + 1];
+            displayNames[0] = "None";
+            Array.Copy(_cachedTypeNames, 0, displayNames, 1, _cachedTypeNames.Length);
+
+            int currentIndex = GetCurrentTypeIndex(property);
+
+            EditorGUI.BeginChangeCheck();
+            int newIndex = EditorGUI.Popup(currentRect, label.text, currentIndex, displayNames);
+
+            if (EditorGUI.EndChangeCheck())
             {
-                displayNames = new string[_typeNames.Length + 1];
-                displayNames[0] = "(None)";
-                Array.Copy(_typeNames, 0, displayNames, 1, _typeNames.Length);
-            }
-            else
-            {
-                displayNames = new[] { "(None)" };
-            }
-
-            // --- 2) Popup type ---
-            Rect popupRect = new Rect(
-                position.x,
-                position.y,
-                position.width,
-                lineH
-            );
-
-            int currentIndex = 0; // 0 = None
-
-            if (!string.IsNullOrEmpty(property.managedReferenceFullTypename))
-            {
-                var parts = property.managedReferenceFullTypename.Split(' ');
-                if (parts.Length == 2)
-                {
-                    string asmName = parts[0];
-                    string typeName = parts[1];
-                    string full = $"{typeName}, {asmName}";
-
-                    var currentType = Type.GetType(full);
-                    if (currentType != null && _types != null)
-                    {
-                        int idx = Array.IndexOf(_types, currentType);
-                        if (idx >= 0)
-                            currentIndex = idx + 1; // +1 car 0 = None
-                    }
-                }
-            }
-
-            int newIndex = EditorGUI.Popup(popupRect, label.text, currentIndex, displayNames);
-
-            if (newIndex != currentIndex)
-            {
-                if (newIndex <= 0)
+                if (newIndex == 0)
                 {
                     property.managedReferenceValue = null;
                 }
                 else
                 {
-                    var newType = _types[newIndex - 1];
-                    property.managedReferenceValue = Activator.CreateInstance(newType);
-                    property.isExpanded = true; // petite QoL : auto-expand
+                    Type selectedType = _cachedTypes[newIndex - 1];
+                    property.managedReferenceValue = Activator.CreateInstance(selectedType);
+                    property.isExpanded = true;
                 }
+                property.serializedObject.ApplyModifiedProperties();
             }
 
-            // Si pas d'instance -> pas de foldout / children
             if (property.managedReferenceValue == null)
             {
                 EditorGUI.EndProperty();
                 return;
             }
 
-            // --- 3) Foldout line ---
-            float foldY = popupRect.y + lineH + v;
-            Rect foldRect = new Rect(
-                position.x + 15,
-                foldY,
-                position.width - 15,
-                lineH
-            );
+            currentRect.y += lineHeight + spacing;
+            currentRect.x += 15;
+            currentRect.width -= 15;
 
-            property.isExpanded = EditorGUI.Foldout(foldRect, property.isExpanded, GUIContent.none);
+            property.isExpanded = EditorGUI.Foldout(currentRect, property.isExpanded, "Settings", true);
 
             if (property.isExpanded)
             {
                 EditorGUI.indentLevel++;
 
-                var child = property.Copy();
-                var end = child.GetEndProperty();
-                bool first = true;
+                SerializedProperty iterator = property.Copy();
+                SerializedProperty end = iterator.GetEndProperty();
+                bool enterChildren = true;
 
-                float y = foldY + lineH + v;
+                currentRect.y += lineHeight + spacing;
+                currentRect.x = position.x;
+                currentRect.width = position.width;
 
-                while (child.NextVisible(first) && !SerializedProperty.EqualContents(child, end))
+                while (iterator.NextVisible(enterChildren) && !SerializedProperty.EqualContents(iterator, end))
                 {
-                    float h = EditorGUI.GetPropertyHeight(child, true);
-                    Rect r = new Rect(position.x, y, position.width, h);
-                    EditorGUI.PropertyField(r, child, true);
-                    y += h + v;
-                    first = false;
+                    float propertyHeight = EditorGUI.GetPropertyHeight(iterator, true);
+                    currentRect.height = propertyHeight;
+
+                    EditorGUI.PropertyField(currentRect, iterator, true);
+
+                    currentRect.y += propertyHeight + spacing;
+                    enterChildren = false;
                 }
 
                 EditorGUI.indentLevel--;
             }
 
             EditorGUI.EndProperty();
+        }
+
+        private int GetCurrentTypeIndex(SerializedProperty property)
+        {
+            if (string.IsNullOrEmpty(property.managedReferenceFullTypename))
+                return 0;
+
+            string[] parts = property.managedReferenceFullTypename.Split(' ');
+            if (parts.Length != 2)
+                return 0;
+
+            string assemblyName = parts[0];
+            string typeName = parts[1];
+            string fullTypeName = $"{typeName}, {assemblyName}";
+
+            Type currentType = Type.GetType(fullTypeName);
+            if (currentType == null)
+                return 0;
+
+            int index = Array.IndexOf(_cachedTypes, currentType);
+            return index >= 0 ? index + 1 : 0;
         }
     }
 }

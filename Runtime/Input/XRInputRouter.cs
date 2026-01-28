@@ -1,4 +1,5 @@
-using Sirenix.OdinInspector;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
@@ -11,10 +12,22 @@ namespace Louis.XR.Interactions.Input
         Right
     }
 
-    [PropertyOrder(-50)]
+    /// <summary>
+    /// Type de bouton XR
+    /// </summary>
+    public enum XRButtonType
+    {
+        Primary,
+        Secondary,
+        Trigger,
+        Grip,
+        Menu
+    }
+
+    [DefaultExecutionOrder(-100)]
     public class XRInputRouter : MonoBehaviour
     {
-        public static XRInputRouter Instance { get; private set; }
+        public static XRInputRouter Instance {get; private set;}
 
         [Header("Map Names")]
         [SerializeField] private string leftMapName = "XRI LeftHand Interaction";
@@ -33,25 +46,79 @@ namespace Louis.XR.Interactions.Input
         [SerializeField] private string secondaryTouchName = "Secondary Touch";
         [SerializeField] private string menuName = "Menu";
 
+        [Header("Haptics")]
+        [SerializeField] private string hapticDeviceName = "Haptic Device";
+        [SerializeField] private string hapticTriggerName = "Haptic Trigger";
+        [SerializeField] private string hapticThumbstickName = "Haptic Thumbstick";
+
         // LEFT
         private InputAction l_trigger, l_grip, l_primary, l_secondary;
         private InputAction l_stick, l_stickClick;
         private InputAction l_triggerTouch, l_gripTouch, l_primaryTouch, l_secondaryTouch;
         private InputAction l_menu;
+        private InputAction l_hapticDevice;
+        private InputAction l_hapticTrigger;
+        private InputAction l_hapticThumbstick;
 
         // RIGHT
         private InputAction r_trigger, r_grip, r_primary, r_secondary;
         private InputAction r_stick, r_stickClick;
         private InputAction r_triggerTouch, r_gripTouch, r_primaryTouch, r_secondaryTouch;
 
+        private InputAction r_menu;
+        private InputAction r_hapticDevice;
+        private InputAction r_hapticTrigger;
+        private InputAction r_hapticThumbstick;
+
+        /// <summary>
+        /// Récupère le InputDevice haptique pour une main donnée
+        /// </summary>
+        public InputDevice GetHapticDevice(XRHandSide hand)
+        {
+            InputAction hapticAction = hand == XRHandSide.Left ? l_hapticDevice : r_hapticDevice;
+            
+            if (hapticAction == null || hapticAction.activeControl == null)
+            {
+                return default;
+            }
+
+            return hapticAction.activeControl.device;
+        }
+
+        public InputDevice GetHapticTrigger(XRHandSide hand)
+        {
+            InputAction hapticAction = hand == XRHandSide.Left ? l_hapticTrigger : r_hapticTrigger;
+            
+            if (hapticAction == null || hapticAction.activeControl == null)
+            {
+                return default;
+            }
+
+            return hapticAction.activeControl.device;
+        }
+
+        public InputDevice GetHapticThumbstick(XRHandSide hand)
+        {
+            InputAction hapticAction = hand == XRHandSide.Left ? l_hapticThumbstick : r_hapticThumbstick;
+            
+            if (hapticAction == null || hapticAction.activeControl == null)
+            {
+                return default;
+            }
+
+            return hapticAction.activeControl.device;
+        }
+
         private void Awake()
         {
-            if (Instance != null && Instance != this)
+            // Initialiser tous les types de boutons pour chaque main
+            foreach (XRButtonType buttonType in System.Enum.GetValues(typeof(XRButtonType)))
             {
-                Destroy(gameObject);
-                return;
+                foreach (XRHandSide side in System.Enum.GetValues(typeof(XRHandSide)))
+                {
+                    buttonPressCallbacks[(buttonType, side)] = new List<Action>();
+                }
             }
-            Instance = this;
 
             // 1) Fetch InputActionAsset automatiquement
             var manager = FindObjectOfType<InputActionManager>();
@@ -61,7 +128,9 @@ namespace Louis.XR.Interactions.Input
                 return;
             }
 
-            // Correction ici : recherche du bon InputActionAsset contenant le map demand�
+            Instance = this;
+
+            //recherche du bon InputActionAsset contenant le map demand�
             InputActionAsset asset = null;
             foreach (var a in manager.actionAssets)
             {
@@ -74,7 +143,7 @@ namespace Louis.XR.Interactions.Input
 
             if (asset == null)
             {
-                Debug.LogError("[XRInputRouter] Aucun InputActionAsset ne contient les maps demand�s !");
+                Debug.LogError("[XRInputRouter] Aucun InputActionAsset ne contient les maps demand�s !");
                 return;
             }
 
@@ -91,6 +160,9 @@ namespace Louis.XR.Interactions.Input
             l_primaryTouch = Bind(left, primaryTouchName);
             l_secondaryTouch = Bind(left, secondaryTouchName);
             l_menu = Bind(left, menuName);
+            l_hapticDevice = Bind(left, hapticDeviceName);
+            l_hapticTrigger = Bind(left, hapticTriggerName);
+            l_hapticThumbstick = Bind(left, hapticThumbstickName);
 
             // 3) Bind RIGHT
             var right = asset.FindActionMap(rightMapName, true);
@@ -104,6 +176,10 @@ namespace Louis.XR.Interactions.Input
             r_gripTouch = Bind(right, gripTouchName);
             r_primaryTouch = Bind(right, primaryTouchName);
             r_secondaryTouch = Bind(right, secondaryTouchName);
+            r_menu = Bind(right, menuName);
+            r_hapticDevice = Bind(right, hapticDeviceName);
+            r_hapticTrigger = Bind(right, hapticTriggerName);
+            r_hapticThumbstick = Bind(right, hapticThumbstickName);
         }
 
         private InputAction Bind(InputActionMap map, string actionName)
@@ -172,11 +248,106 @@ namespace Louis.XR.Interactions.Input
         public bool ThumbstickClicked(XRHandSide side)
             => A(side, l_stickClick, r_stickClick)?.IsPressed() ?? false;
 
-        // Menu (gauche en g�n�ral)
-        public bool MenuPressedThisFrame()
-            => l_menu?.WasPressedThisFrame() ?? false;
+        // Menu
+        public bool MenuPressedThisFrame(XRHandSide side)
+        => A(side, l_menu, r_menu)?.WasPressedThisFrame() ?? false;
 
-        public bool MenuHeld()
-            => l_menu?.IsPressed() ?? false;
+        public bool MenuHeld(XRHandSide side)
+            => A(side, l_menu, r_menu)?.IsPressed() ?? false;
+
+        // Structure pour stocker les callbacks par type et main
+        private Dictionary<(XRButtonType, XRHandSide), List<Action>> buttonPressCallbacks = 
+            new Dictionary<(XRButtonType, XRHandSide), List<Action>>();
+
+        private void Update()
+        {            
+            // Invoquer les callbacks pour chaque combinaison
+            foreach (XRHandSide side in System.Enum.GetValues(typeof(XRHandSide)))
+            {
+                if (PrimaryPressedThisFrame(side))
+                    InvokeCallbacks(XRButtonType.Primary, side);
+                
+                if (SecondaryPressedThisFrame(side))
+                    InvokeCallbacks(XRButtonType.Secondary, side);
+                
+                if (TriggerPressed(side))
+                    InvokeCallbacks(XRButtonType.Trigger, side);
+                
+                if (GripPressed(side))
+                    InvokeCallbacks(XRButtonType.Grip, side);
+
+                if (MenuPressedThisFrame(side))
+                    InvokeCallbacks(XRButtonType.Menu, side);
+            }
+        }
+
+        private void InvokeCallbacks(XRButtonType buttonType, XRHandSide hand)
+        {
+            var callbacks = buttonPressCallbacks[(buttonType, hand)];
+            for (int i = callbacks.Count - 1; i >= 0; i--)
+            {
+                callbacks[i]?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Enregistre un callback pour un bouton spécifique
+        /// </summary>
+        public void RegisterButtonPress(XRButtonType buttonType, XRHandSide hand, Action callback)
+        {
+            if (callback != null)
+            {
+                var key = (buttonType, hand);
+                if (!buttonPressCallbacks[key].Contains(callback))
+                {
+                    buttonPressCallbacks[key].Add(callback);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Désenregistre un callback pour un bouton spécifique
+        /// </summary>
+        public void UnregisterButtonPress(XRButtonType buttonType, XRHandSide hand, Action callback)
+        {
+            if (callback != null)
+            {
+                var key = (buttonType, hand);
+                buttonPressCallbacks[key].Remove(callback);
+            }
+        }
+
+        // Méthodes helper pour garder la compatibilité
+        public void RegisterPrimaryButtonPress(XRHandSide hand, Action callback) 
+            => RegisterButtonPress(XRButtonType.Primary, hand, callback);
+        
+        public void UnregisterPrimaryButtonPress(XRHandSide hand, Action callback) 
+            => UnregisterButtonPress(XRButtonType.Primary, hand, callback);
+        
+        public void RegisterSecondaryButtonPress(XRHandSide hand, Action callback) 
+            => RegisterButtonPress(XRButtonType.Secondary, hand, callback);
+        
+        public void UnregisterSecondaryButtonPress(XRHandSide hand, Action callback) 
+            => UnregisterButtonPress(XRButtonType.Secondary, hand, callback);
+        
+        public void RegisterTriggerPress(XRHandSide hand, Action callback) 
+            => RegisterButtonPress(XRButtonType.Trigger, hand, callback);
+        
+        public void UnregisterTriggerPress(XRHandSide hand, Action callback) 
+            => UnregisterButtonPress(XRButtonType.Trigger, hand, callback);
+        
+        public void RegisterGripPress(XRHandSide hand, Action callback) 
+            => RegisterButtonPress(XRButtonType.Grip, hand, callback);
+        
+        public void UnregisterGripPress(XRHandSide hand, Action callback) 
+            => UnregisterButtonPress(XRButtonType.Grip, hand, callback);
+
+        public void RegisterMenuPress(XRHandSide hand, Action callback) 
+            => RegisterButtonPress(XRButtonType.Menu, hand, callback);
+
+        public void UnregisterMenuPress(XRHandSide hand, Action callback) 
+            => UnregisterButtonPress(XRButtonType.Menu, hand, callback);
+
+        
     }
 }

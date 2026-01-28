@@ -2,12 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Louis.XR.Interactions.Grab
+namespace Louis.XR.Interactions.Utils.Anchors
 {
 
     public class XRAnchor : MonoBehaviour
     {
-        public HandUsage handside = HandUsage.Both;
+
+        public AnchorRole role = AnchorRole.Any;
+        public HandUsage handside = HandUsage.None;
 
         public float priority = 1f;
 
@@ -23,21 +25,18 @@ namespace Louis.XR.Interactions.Grab
 
         private void OnDrawGizmos()
         {
-            // couleur de base selon la main
             Color c = handside switch
             {
+                HandUsage.None => Color.gray,
                 HandUsage.Left => Color.cyan,
                 HandUsage.Right => Color.magenta,
                 HandUsage.Both => Color.yellow,
                 _ => Color.white
             };
 
-            // --- position de l'anchor ---
             Gizmos.color = c;
             Gizmos.DrawSphere(transform.position, gizmoSphereRadius);
 
-            // --- orientation (forward / up) ---
-            // forward = direction "devant" de la main quand ça snap
             Gizmos.DrawLine(transform.position,
                             transform.position + transform.forward * gizmoForwardLength);
 
@@ -45,7 +44,6 @@ namespace Louis.XR.Interactions.Grab
             Gizmos.DrawLine(transform.position,
                             transform.position + transform.up * gizmoUpLength);
 
-            // --- rayon de snap (debug, pour visualiser la zone où le grab peut s'ancrer) ---
             Gizmos.color = new Color(c.r, c.g, c.b, 0.2f);
             Gizmos.DrawWireSphere(transform.position, debugSnapRadius);
         }
@@ -55,7 +53,14 @@ namespace Louis.XR.Interactions.Grab
 
     public enum HandUsage
     {
-        Left, Right, Both
+        None, Left, Right, Both
     }
 
+    public enum AnchorRole
+    {
+        Grab,
+        Inventory,
+        SocketOverride,
+        Any
+    }
 }

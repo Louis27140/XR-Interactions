@@ -1,10 +1,7 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
-namespace Louis.XR.Interactions.Grab
+namespace Louis.XR.Interactions.Grab.Logic.Remote
 {
     [Serializable]
     public class RemoteInstantLogic : XRRemoteLogicBase
@@ -16,7 +13,7 @@ namespace Louis.XR.Interactions.Grab
 
         public override void OnSelectEntered(XRContext ctx)
         {
-            // Ici, l'objet vient d'être sélectionné par le RAY
+            // Ici, l'objet vient d'ï¿½tre sï¿½lectionnï¿½ par le RAY
             var manager = ctx.manager;
             if (manager == null)
                 return;
@@ -24,11 +21,11 @@ namespace Louis.XR.Interactions.Grab
             if (ctx.interactor is not IXRSelectInteractor rayInteractor)
                 return;
 
-            // On cherche le XRDirectInteractor correspondant à la main
+            // On cherche le XRDirectInteractor correspondant ï¿½ la main
             var directInteractor = rayInteractor.transform.GetComponentInParent<XRDirectInteractor>();
             if (directInteractor == null)
             {
-                // Pas de direct interactor trouvé -> on laisse le grab remote normal
+                // Pas de direct interactor trouvï¿½ -> on laisse le grab remote normal
                 return;
             }
 
