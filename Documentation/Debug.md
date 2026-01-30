@@ -1,6 +1,8 @@
-# Debug XR
+# XR Debug System
 
-Utilitaires pour déboguer l'application directement dans le casque VR.
+[Back to README](../README.md)
+
+Utilities for toggling the in-VR debugger via controller buttons.
 
 ## Architecture
 
@@ -10,23 +12,32 @@ classDiagram
         <<MonoBehaviour>>
         +float holdDuration
         +XRHandSide hand
-        -IDebuggerLogger debugger
     }
-    
+
     class IDebuggerLogger {
         <<interface from Core>>
         +ToggleDebugger(enabled) void
     }
-    
+
     XRDebugLogger --> IDebuggerLogger : toggles
     XRDebugLogger --> XRInputRouter : reads buttons from
 ```
 
-## XRDebugLogger
+## XRDebugLogger (MonoBehaviour)
 
-Composant simple qui écoute une combinaison de boutons spécifique pour activer/désactiver le panneau de logs (`DebugLoggerController` du Core).
+Toggles the debug panel by holding a button combination.
 
-- **Activation** : Maintenir les boutons **Primary** (A/X) et **Secondary** (B/Y) de la main configurée simultanément.
-- **Hold Duration** : Temps de maintien avant activation (évite les déclenchements accidentels).
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `holdDuration` | `float` | 2.0 | Hold time before toggle |
+| `hand` | `XRHandSide` | Left | Which hand to listen on |
 
-Indispensable pour voir les exceptions et logs `Debug.Log` sans retirer le casque.
+### Behavior
+
+Hold **Primary** (A/X) + **Secondary** (B/Y) simultaneously on the configured hand for `holdDuration` seconds to toggle the debug panel on/off.
+
+Finds `IDebuggerLogger` (from `DebugLoggerController`) on the same GameObject at `Awake()`.
+
+## Source Files
+
+- `Runtime/Utils/Debug/XRDebugLogger.cs`

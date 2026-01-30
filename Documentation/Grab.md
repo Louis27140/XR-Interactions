@@ -1,6 +1,8 @@
-# Système de Grab Avancé
+# Grab System
 
-Système modulaire et extensible pour la manipulation d'objets en VR, utilisant le **Strategy Pattern** pour permettre différents comportements de saisie (Direct, Distant, Socket) sur un même objet.
+[Back to README](../README.md)
+
+Modular grab system using the **Strategy Pattern** for composable interaction behaviors. Supports direct grab, remote grab (Half-Life Alyx style), two-hand manipulation, socket placement, and door handles.
 
 ## Architecture
 
@@ -9,17 +11,16 @@ classDiagram
     class XRGrabInteractable {
         <<Unity XRI>>
     }
-    
+
     class XRGenericInteractable {
         +XRDirectLogicBase directLogic
         +XRRemoteLogicBase remoteLogic
         +XRSocketLogicBase socketLogic
-        +bool useHandle
+        +bool AllowGrab
+        +bool UseHandle
         +List~XRAnchor~ anchors
-        +List~Collider~ colliders
-        -DispatchToLogic()
     }
-    
+
     class XRDirectLogicBase {
         <<abstract>>
         +CanSelect(ctx) bool
@@ -28,121 +29,178 @@ classDiagram
         +Process(ctx) void
         +OnSelectExiting(ctx) void
         +OnSelectExited(ctx) void
+        +OnFixedUpdate(ctx) void
     }
-    
-    class DirectLogic {
-        Standard grab behavior
-    }
-    
-    class DirectAnchorLogic {
-        +float maxSnapDistance
-        +bool useAngle
-        +float maxAngle
-        +float angleWeight
-    }
-    
-    class TwoHandDirectLogic {
-        +float minScale
-        +float maxScale
-        Bi-manual manipulation
-    }
-    
+
     class XRRemoteLogicBase {
         <<abstract>>
-        Same methods as Direct
+        Same lifecycle as Direct
     }
-    
-    class RemoteInstantLogic {
-        Instant teleport to hand
+
+    class XRSocketLogicBase {
+        <<abstract>>
+        +OnSelectEntering(ctx) bool
+        +OnSelectEntered(ctx) void
+        +OnSelectExiting(ctx) void
+        +OnSelectExited(ctx) void
+        +Process(ctx) void
     }
-    
-    class RemoteHLALogic {
-        +float velocityThreshold
-        +float travelTime
-        +bool isAutoGrabbed
-        +bool useArc
-        Half-Life Alyx style
-    }
-    
-    class RemoteGrabWithRotationLogic {
-        +Vector2InputDefinition joystickInput
-        +float rotationSpeed
-        Rotate/move held object
-    }
-    
+
     class XRContext {
-        <<struct>>
-        +IXRInteractor interactor
-        +Transform transform
+        +IXRSelectInteractor interactor
+        +XRGenericInteractable interactable
         +HandUsage hand
         +List~XRAnchor~ anchors
         +float deltaTime
+        +bool isRemote
+        +bool isHeld
     }
-    
+
+    class XRMultiContext {
+        +List~IXRSelectInteractor~ allInteractors
+        +IXRSelectInteractor secondaryInteractor
+        +Vector3 centerPosition
+        +float handsDistance
+    }
+
     XRGrabInteractable <|-- XRGenericInteractable
-    XRGenericInteractable *-- XRDirectLogicBase : directLogic
-    XRGenericInteractable *-- XRRemoteLogicBase : remoteLogic
-    XRDirectLogicBase <|-- DirectLogic
-    XRDirectLogicBase <|-- DirectAnchorLogic
-    XRDirectLogicBase <|-- TwoHandDirectLogic
-    XRRemoteLogicBase <|-- RemoteInstantLogic
-    XRRemoteLogicBase <|-- RemoteHLALogic
-    XRRemoteLogicBase <|-- RemoteGrabWithRotationLogic
+    XRGenericInteractable *-- XRDirectLogicBase
+    XRGenericInteractable *-- XRRemoteLogicBase
+    XRGenericInteractable *-- XRSocketLogicBase
     XRDirectLogicBase ..> XRContext : receives
-    XRRemoteLogicBase ..> XRContext : receives
+    XRContext <|-- XRMultiContext
 ```
 
-## Composants Principaux
+## XRGenericInteractable
 
-### XRGenericInteractable
+`[DisallowMultipleComponent]` - Extends `XRGrabInteractable`.
 
-L'interactable central qui remplace le `XRGrabInteractable` standard. Il utilise la sérialisation polymorphique (`[SerializeReference]`) pour permettre de configurer des stratégies de grab différentes directement dans l'inspecteur.
+Central component that replaces the standard XRGrabInteractable. Uses `[SerializeReference]` for polymorphic logic selection in Inspector.
 
-- **Types de Grab supportés** : Direct (main), Remote (rayon), Socket (inventaire).
-- **Validation** : Vérifie automatiquement la présence de Rigidbody et Colliders.
-- **Anchors** : Gère la liste des `XRAnchor` enfants pour le snapping.
+| Field | Type | Description |
+|-------|------|-------------|
+| `directLogic` | `XRDirectLogicBase` | Hand-to-object grab strategy |
+| `remoteLogic` | `XRRemoteLogicBase` | Distance grab strategy |
+| `socketLogic` | `XRSocketLogicBase` | Socket placement strategy |
+| `allowGrab` | `bool` | Enable/disable grabbing |
+| `onGrabPreset` | `XRHapticPreset` | Haptic on grab |
+| `onReleasePreset` | `XRHapticPreset` | Haptic on release |
+| `onHoverPreset` | `XRHapticPreset` | Haptic on hover |
 
-### Logiques Direct Grab
+Properties: `AllowGrab { get; set; }`, `UseHandle { get; }`.
 
-Ces logiques définissent comment l'objet se comporte lorsqu'il est saisi directement par la main.
+Auto-collects `XRAnchor` children on `Awake()`.
 
-| Logique | Description | Propriétés Clés |
-|---------|-------------|-----------------|
-| **DirectLogic** | Comportement standard XRI. L'objet suit la main. | Aucune |
-| **DirectAnchorLogic** | Snap l'objet à une position précise dans la main (Anchor). | `maxSnapDistance`, `useAngle`, `maxAngle` |
-| **TwoHandDirectLogic** | Permet la manipulation à deux mains (scale/rotate). | `minScale`, `maxScale` |
+## XRContext / XRMultiContext
 
-### Logiques Remote Grab
+Data objects passed to all logic methods.
 
-Ces logiques définissent comment l'objet se comporte lorsqu'il est saisi à distance (Ray Interactor).
+**XRContext fields:** `interactor`, `interactable`, `hand` (HandUsage), `interactorPosition`, `interactorRotation`, `attachTransform`, `anchors`, `deltaTime`, `isRemote`, `isHeld`, `manager`.
 
-| Logique | Description | Propriétés Clés |
-|---------|-------------|-----------------|
-| **RemoteInstantLogic** | Téléportation immédiate dans la main. Pratique pour le loot rapide. | Aucune |
-| **RemoteHLALogic** | Lancement en arc type "Half-Life Alyx". L'objet vole vers la main. | `velocityThreshold`, `travelTime`, `useArc` |
-| **RemoteGrabWithRotationLogic** | L'objet reste à distance et peut être manipulé/tourné au joystick. | `rotationSpeed`, `joystickInput` |
+**XRMultiContext** adds: `allInteractors`, `secondaryInteractor`, `secondaryInteractorPosition`, `secondaryInteractorRotation`, `secondaryHand`, `centerPosition`, `handsDirection`, `handsDistance`, `interactorCount`.
 
-### XRContext
+## Direct Grab Logics
 
-Structure de données passée à toutes les méthodes de logique (`Process`, `OnSelectEntering`, etc.). Elle évite de passer de multiples paramètres et garantit que la logique a accès au contexte complet de l'interaction.
+| Logic | Description | Key Fields |
+|-------|-------------|------------|
+| `DirectLogic` | Standard XRI behavior, object follows hand | None |
+| `DirectAnchorLogic` | Snaps to nearest anchor with scoring | `maxSnapDistance`, `useAngle`, `maxAngle`, `angleWeight` |
+| `TwoHandDirectLogic` | Two-hand manipulation (scale/rotate) | `alignToHandsAxis`, `enableScaling`, `minScale`, `maxScale`, `usePrimaryHandAnchor`, `maxSnapDistance` |
 
-- `IXRInteractor interactor` : L'interactor qui initie l'action.
-- `HandUsage hand` : La main (Gauche/Droite) qui interagit.
-- `List<XRAnchor> anchors` : Les points de snap disponibles sur l'objet.
+### TwoHandDirectLogic Details
 
-## Exemple d'implémentation
+Supports bi-manual manipulation with:
+- **Rotation:** Aligns object axis to the line between both hands
+- **Scaling:** Distance between hands controls scale (`minScale` to `maxScale`)
+- **Anchors:** Primary and secondary hand anchor snapping
+
+Additional methods: `OnSecondHandGrabbed(XRMultiContext)`, `OnSecondHandReleased()`, `ProcessMulti(XRMultiContext)`.
+
+## Remote Grab Logics
+
+| Logic | Description | Key Fields |
+|-------|-------------|------------|
+| `RemoteInstantLogic` | Instant teleport to hand | None |
+| `RemoteHLALogic` | Half-Life Alyx style arc flight | `velocityThreshold`, `travelTime`, `isAutoGrabbed`, `autoGrabDistance`, `useArc`, `arcHeight` |
+| `RemoteGrabWithRotationLogic` | Hold at distance, rotate/move with joystick | `joystickInput`, `toggleRotationInput`, `resetInput`, `speed`, `rotationSpeed` |
+
+### RemoteHLALogic Details
+
+1. Object selected via ray
+2. Hand flick detected (velocity > `velocityThreshold`)
+3. Object flies in parabolic arc toward hand (`travelTime`)
+4. On arrival, auto-grabs to direct interactor if `isAutoGrabbed`
+
+### RemoteGrabWithRotationLogic Details
+
+Pushes an input context on grab, pops on release. Uses `Vector2InputDefinition` joystick for distance/rotation control.
+
+## Socket Grab Logic
+
+| Logic | Description |
+|-------|-------------|
+| `SocketAnchorLogic` | Selects inventory anchor on socket enter, restores default on exit |
+
+## XRHandleInteractable
+
+Extends `XRGrabInteractable`. Specialized for door handles with front/back attach points.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `frontHandleAttach` | `Transform` | Front grip position |
+| `backHandleAttach` | `Transform` | Back grip position |
+| `HandleRoot` | `Transform` | Handle root transform |
+| `LHand` / `RHand` | `GameObject` | Static hand models |
+| `doorColliders` | `List<Collider>` | Colliders to ignore during grab |
+
+Selects front/back attach based on interactor side. Shows/hides static hand models on grab. Manages collision ignoring between hand and door.
+
+## XRInteractorController
+
+Manages direct/ray/UI interactor switching per hand.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `directInteractor` | `XRBaseInteractor` | Direct (hand) interactor |
+| `rayInteractor` | `XRBaseInteractor` | Ray (distance) interactor |
+| `uiInteractor` | `XRBaseInteractor` | UI interaction interactor |
+| `dynamicHand` | `GameObject` | Animated hand model |
+| `staticHand` | `GameObject` | Static hand model (for handles) |
+
+Switches between dynamic/static hand on grab/release. Enables handle mode when grabbing `XRHandleInteractable`.
+
+## Extending the Grab System
 
 ```csharp
 using Louis.XR.Interactions.Grab;
+using Louis.XR.Interactions.Grab.Logic;
 
+[System.Serializable]
 public class CustomGrabLogic : XRDirectLogicBase
 {
-    public float myCustomSpeed = 1.0f;
+    public float speed = 1.0f;
 
-    public override void Process(XRContext context)
+    public override void Process(XRContext ctx)
     {
-        // Logique exécutée à chaque frame pendant le grab
-        context.transform.Rotate(Vector3.up * myCustomSpeed * context.deltaTime);
+        ctx.interactable.transform.Rotate(Vector3.up * speed * ctx.deltaTime);
     }
 }
 ```
+
+## Source Files
+
+- `Runtime/Grab/XRGenericInteractable.cs`
+- `Runtime/Grab/XRContext.cs`
+- `Runtime/Grab/XRMultiContext.cs`
+- `Runtime/Grab/XRHandleInteractable.cs`
+- `Runtime/Grab/XRInteractorController.cs`
+- `Runtime/Grab/Logic/XRDirectLogicBase.cs`
+- `Runtime/Grab/Logic/XRRemoteLogicBase.cs`
+- `Runtime/Grab/Logic/XRSocketLogicBase.cs`
+- `Runtime/Grab/Logic/Direct/DirectLogic.cs`
+- `Runtime/Grab/Logic/Direct/DirectAnchorLogic.cs`
+- `Runtime/Grab/Logic/Direct/TwoHandDirectLogic.cs`
+- `Runtime/Grab/Logic/Remote/RemoteInstantLogic.cs`
+- `Runtime/Grab/Logic/Remote/RemoteHLALogic.cs`
+- `Runtime/Grab/Logic/Remote/RemoteGrabWithRotationLogic.cs`
+- `Runtime/Grab/Logic/Socket/SocketAnchorLogic.cs`

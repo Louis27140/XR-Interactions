@@ -2,10 +2,10 @@ using UnityEngine;
 using UnityEditor;
 using System.Linq;
 
-namespace Louis.Editor.Utils
+namespace Louis.XR.Interactions.Editor.Utils
 {
     /// <summary>
-    /// Utilitaire pour trouver les références null/manquantes dans la scène
+    /// Utilitaire pour trouver les rï¿½fï¿½rences null/manquantes dans la scï¿½ne
     /// </summary>
     public static class FindMissingReferences
     {
@@ -38,7 +38,7 @@ namespace Louis.Editor.Utils
                             if (sp.objectReferenceValue == null
                                 && sp.objectReferenceInstanceIDValue != 0)
                             {
-                                Debug.LogWarning($"[Référence Null] {GetFullPath(go)} > {component.GetType().Name}.{sp.name}", go);
+                                Debug.LogWarning($"[Rï¿½fï¿½rence Null] {GetFullPath(go)} > {component.GetType().Name}.{sp.name}", go);
                                 nullRefCount++;
                             }
                         }
@@ -48,11 +48,11 @@ namespace Louis.Editor.Utils
 
             if (missingCount == 0 && nullRefCount == 0)
             {
-                Debug.Log("<color=green> Aucune référence manquante trouvée dans la scène!</color>");
+                Debug.Log("<color=green> Aucune rï¿½fï¿½rence manquante trouvï¿½e dans la scï¿½ne!</color>");
             }
             else
             {
-                Debug.Log($"<color=yellow>Analyse terminée: {missingCount} scripts manquants, {nullRefCount} références null</color>");
+                Debug.Log($"<color=yellow>Analyse terminï¿½e: {missingCount} scripts manquants, {nullRefCount} rï¿½fï¿½rences null</color>");
             }
         }
 
@@ -61,7 +61,7 @@ namespace Louis.Editor.Utils
         {
             if (Selection.gameObjects.Length == 0)
             {
-                Debug.LogWarning("Aucun GameObject sélectionné");
+                Debug.LogWarning("Aucun GameObject sï¿½lectionnï¿½");
                 return;
             }
 
@@ -81,8 +81,8 @@ namespace Louis.Editor.Utils
             }
 
             Debug.Log(missingCount == 0
-                ? "<color=green> Aucun script manquant sur la sélection</color>"
-                : $"<color=red>{missingCount} scripts manquants trouvés</color>");
+                ? "<color=green> Aucun script manquant sur la sï¿½lection</color>"
+                : $"<color=red>{missingCount} scripts manquants trouvï¿½s</color>");
         }
 
         private static string GetFullPath(GameObject go)

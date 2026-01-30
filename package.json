@@ -15,7 +15,7 @@
     "xr"
   ],
   "dependencies": {
-    "com.louis.xr.core": "0.0.1",
+    "com.louis.core": "0.0.1",
     "com.unity.xr.interaction.toolkit": "3.2.2"
   },
   "samples": [
@@ -38,6 +38,11 @@
       "displayName": "Inventory",
       "description": "Prefabs Inventory",
       "path": "Samples/Inventory"
+    },
+    {
+      "displayName": "Demo scene",
+      "description": "A demo scene showcasing the XR interaction features.",
+      "path": "Samples/Demo"
     }
   ]
 }

@@ -5,7 +5,7 @@ using UnityEngine;
 
 
 
-namespace Louis.Interactions.Hands {
+namespace Louis.XR.Interactions.Hands {
 
     [RequireComponent(typeof(Animator))]
     public class Hand : MonoBehaviour

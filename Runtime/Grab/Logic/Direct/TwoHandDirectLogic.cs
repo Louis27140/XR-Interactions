@@ -50,8 +50,6 @@ namespace Louis.XR.Interactions.Grab.Logic.Direct
 
     public override bool CanSelect(XRContext ctx)
     {
-        Debug.Log($"[TwoHandDirectLogic] CanSelect called - Hand: {ctx.hand}, IsHeld: {ctx.isHeld}");
-        // Can always select with one hand
         return true;
     }
 
@@ -61,7 +59,6 @@ namespace Louis.XR.Interactions.Grab.Logic.Direct
     /// </summary>
     public override bool OnSelectEntering(XRContext ctx)
     {
-        Debug.Log($"[TwoHandDirectLogic] OnSelectEntering - Hand: {ctx.hand}, UsePrimaryHandAnchor: {usePrimaryHandAnchor}, Anchors Count: {ctx.anchors?.Count ?? 0}");
         base.OnSelectEntering(ctx);
 
         // Select anchor for primary hand if enabled
@@ -88,18 +85,8 @@ namespace Louis.XR.Interactions.Grab.Logic.Direct
             {
                 primaryAnchor = anchor.transform;
                 ctx.interactable.attachTransform = primaryAnchor;
-                Debug.Log($"[TwoHandDirectLogic] Anchor selected: {anchor.name}");
-            }
-            else
-            {
-                Debug.LogWarning($"[TwoHandDirectLogic] No anchor available at all!");
             }
         }
-        else if (usePrimaryHandAnchor)
-        {
-            Debug.LogWarning($"[TwoHandDirectLogic] usePrimaryHandAnchor enabled but no anchors available!");
-        }
-
         return true;
     }
 
@@ -109,14 +96,11 @@ namespace Louis.XR.Interactions.Grab.Logic.Direct
     /// </summary>
     public override void OnSelectEntered(XRContext ctx)
     {
-        Debug.Log($"[TwoHandDirectLogic] OnSelectEntered - Primary hand grab confirmed");
         base.OnSelectEntered(ctx);
 
-        // Store initial scale for potential scaling
         if (ctx.interactable != null)
         {
             initialScale = ctx.interactable.transform.localScale;
-            Debug.Log($"[TwoHandDirectLogic] Initial scale stored: {initialScale}");
         }
     }
 
@@ -127,7 +111,6 @@ namespace Louis.XR.Interactions.Grab.Logic.Direct
     /// </summary>
     public void OnSecondHandGrabbed(XRMultiContext ctx)
     {
-        Debug.Log($"[TwoHandDirectLogic] OnSecondHandGrabbed - Entering TWO-HAND MODE! Hands distance: {ctx.handsDistance}");
         isInTwoHandMode = true;
         initialHandsDistance = ctx.handsDistance;
 
@@ -140,15 +123,6 @@ namespace Louis.XR.Interactions.Grab.Logic.Direct
         if (usePrimaryHandAnchor && ctx.anchors != null && ctx.anchors.Count > 0)
         {
             secondaryAnchor = SelectSecondaryAnchor(ctx);
-
-            if (secondaryAnchor != null)
-            {
-                Debug.Log($"[TwoHandDirectLogic] Secondary anchor selected: {secondaryAnchor.name}");
-            }
-            else
-            {
-                Debug.Log($"[TwoHandDirectLogic] No suitable secondary anchor found, using free grab for second hand");
-            }
         }
     }
 
@@ -207,27 +181,16 @@ namespace Louis.XR.Interactions.Grab.Logic.Direct
 
         // Return unused anchor if found, otherwise closest, otherwise null
         if (bestUnusedAnchor != null)
-        {
-            Debug.Log($"[TwoHandDirectLogic] Found unused anchor: {bestUnusedAnchor.name} at distance {closestDistance:F3}");
             return bestUnusedAnchor.transform;
-        }
 
         if (closestAnchor != null && closestDistance <= maxSnapDistance)
-        {
-            Debug.Log($"[TwoHandDirectLogic] Using closest anchor (may be same as primary): {closestAnchor.name} at distance {closestDistance:F3}");
             return closestAnchor.transform;
-        }
 
         // Fallback: prendre l'anchor le plus proche sans restrictions
         var fallbackAnchor = AnchorsUtils.SelectClosestAnchor(ctx.anchors, ctx.secondaryInteractorPosition);
         if (fallbackAnchor != null)
-        {
-            Debug.Log($"[TwoHandDirectLogic] Fallback: Using closest anchor without restrictions: {fallbackAnchor.name}");
             return fallbackAnchor.transform;
-        }
 
-        // Priority 3: No anchor at all, free grab
-        Debug.Log($"[TwoHandDirectLogic] No anchor available for secondary hand, using free grab");
         return null;
     }
 
@@ -237,7 +200,6 @@ namespace Louis.XR.Interactions.Grab.Logic.Direct
     /// </summary>
     public void OnSecondHandReleased()
     {
-        Debug.Log($"[TwoHandDirectLogic] OnSecondHandReleased - Exiting TWO-HAND MODE, back to single hand");
         isInTwoHandMode = false;
         secondaryAnchor = null;
     }
@@ -248,9 +210,6 @@ namespace Louis.XR.Interactions.Grab.Logic.Direct
     /// </summary>
     public override void Process(XRContext ctx)
     {
-        Debug.Log($"[TwoHandDirectLogic] Process (single-hand mode) - Hand: {ctx.hand}");
-        // Single hand behavior - use default XR Toolkit behavior
-        // No custom logic needed, base class handles it
         base.Process(ctx);
     }
 
@@ -261,11 +220,7 @@ namespace Louis.XR.Interactions.Grab.Logic.Direct
     public void ProcessMulti(XRMultiContext ctx)
     {
         if (!isInTwoHandMode || ctx.interactorCount < 2)
-        {
-            if (!isInTwoHandMode)
-                Debug.LogWarning($"[TwoHandDirectLogic] ProcessMulti called but NOT in two-hand mode!");
             return;
-        }
 
         var interactable = ctx.interactable;
         if (interactable == null)
@@ -274,8 +229,6 @@ namespace Louis.XR.Interactions.Grab.Logic.Direct
         // Calculate target pose
         Vector3 targetPosition = CalculatePosition(ctx);
         Quaternion targetRotation = CalculateRotation(ctx);
-
-        Debug.Log($"[TwoHandDirectLogic] ProcessMulti - Distance: {ctx.handsDistance:F3}, Position: {targetPosition}, InTwoHandMode: {isInTwoHandMode}");
 
         // Apply scaling if enabled
         if (enableScaling)
@@ -384,7 +337,6 @@ namespace Louis.XR.Interactions.Grab.Logic.Direct
     /// </summary>
     public override void OnSelectExited(XRContext ctx)
     {
-        Debug.Log($"[TwoHandDirectLogic] OnSelectExited - Object completely released, resetting all state");
         base.OnSelectExited(ctx);
 
         // Reset state

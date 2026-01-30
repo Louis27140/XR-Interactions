@@ -10,18 +10,18 @@ namespace Louis.XR.Interactions.Grab.Logic.Remote
     public class RemoteHLALogic : XRRemoteLogicBase
     {
         [Header("Remote trigger")]
-        public float velocityThreshold = 2f;
+        [SerializeField] private float velocityThreshold = 2f;
 
         [Header("Travel")]
-        public float travelTime = 0.35f;
+        [SerializeField] private float travelTime = 0.35f;
 
         [Header("Auto grab")]
-        public bool isAutoGrabbed = true;
-        public float autoGrabDistance = 0.2f;
+        [SerializeField] private bool isAutoGrabbed = true;
+        [SerializeField] private float autoGrabDistance = 0.2f;
 
         [Header("Trajectory")]
-        public bool useArc = true;
-        public float arcHeight = 0.2f;
+        [SerializeField] private bool useArc = true;
+        [SerializeField] private float arcHeight = 0.2f;
 
         private UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable grab;
         private Rigidbody rb;

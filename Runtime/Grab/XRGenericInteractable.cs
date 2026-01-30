@@ -62,11 +62,6 @@ namespace Louis.XR.Interactions.Grab
             {
                 selectMode = InteractableSelectMode.Multiple;
             }
-            else
-            {
-                Debug.LogWarning($"[XRGenericInteractable] {name} - DirectLogic is NOT TwoHandDirectLogic (is: {directLogic?.GetType().Name ?? "NULL"})");
-            }
-
             var rb = GetComponent<Rigidbody>();
             if (rb != null)
             {
@@ -146,9 +141,7 @@ namespace Louis.XR.Interactions.Grab
                 var ctx = BuildContext(interactor);
                 ctx.isRemote = false;
                 ctx.isHeld = isSelected;
-                bool canSelect = directLogic.CanSelect(ctx);
-                Debug.Log($"[XRGenericInteractable] {name} - directLogic.CanSelect returned: {canSelect}");
-                return canSelect;
+                return directLogic.CanSelect(ctx);
             }
 
             return true;
@@ -156,8 +149,6 @@ namespace Louis.XR.Interactions.Grab
 
         protected override void OnSelectEntering(SelectEnterEventArgs args)
         {
-            Debug.Log($"[XRGenericInteractable] OnSelectEntering called on {name}");
-
             var interactor = args.interactorObject as IXRSelectInteractor;
 
             if (interactor != null)
@@ -166,8 +157,6 @@ namespace Louis.XR.Interactions.Grab
                 bool isSocket  = interactor is XRSocketInteractor;
                 var ctx = BuildContext(interactor);
                 ctx.isRemote = isRay;
-
-                Debug.Log($"[XRGenericInteractable] {name} - Calling logic OnSelectEntering - IsRay: {isRay}, IsSocket: {isSocket}");
 
                 if (isRay)
                     remoteLogic?.OnSelectEntering(ctx);

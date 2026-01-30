@@ -2,20 +2,19 @@ using System;
 using System.Collections.Generic;
 using Louis.XR.Interactions.Utils.Anchors;
 using UnityEngine;
-using UnityEngine.Scripting.APIUpdating;
-using UnityEngine.XR.Interaction.Toolkit;
+
 
 namespace Louis.XR.Interactions.Grab.Logic.Direct
 {
     [Serializable]
     public class DirectAnchorLogic : XRDirectLogicBase
     {
-    public float maxSnapDistance = 0.12f;
+    [SerializeField] private float maxSnapDistance = 0.12f;
 
-    public bool useAngle = false;  
+    [SerializeField] private bool useAngle = false;
 
-    public float maxAngle = 60f;      
-    public float angleWeight = 0.5f;   
+    [SerializeField] private float maxAngle = 60f;
+    [SerializeField] private float angleWeight = 0.5f;   
 
     public override bool CanSelect(XRContext ctx)
     {

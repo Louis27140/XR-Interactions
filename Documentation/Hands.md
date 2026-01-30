@@ -1,6 +1,8 @@
-# Système de Mains (Hands)
+# Hands System
 
-Système d'animation procédurale pour les mains VR, synchronisé avec les inputs du contrôleur (Grip, Trigger) et l'état d'interaction.
+[Back to README](../README.md)
+
+Procedural hand animation synchronized with controller inputs (Grip, Trigger) and interaction state.
 
 ## Architecture
 
@@ -8,54 +10,74 @@ Système d'animation procédurale pour les mains VR, synchronisé avec les input
 classDiagram
     class Hand {
         <<MonoBehaviour>>
-        +Animator animator
-        +XRDirectInteractor directInteractor
-        +XRRayInteractor rayInteractor
-        -float currentGrip
-        -float currentTrigger
-        +SetGrip(value) void
-        +SetTrigger(value) void
-        +SetGrab(isGrabbing) void
-        +GetAttachTransform() Transform
-        +SetAttachTransform(anchor) void
+        -float speed
+        -Transform fingerTip
+        +GetCollider() Collider
+        +ToggleMesh(isActive) void
+        ~SetGrip(value) void
+        ~SetTrigger(value) void
+        ~SetGrab(isGrabbing) void
     }
-    
+
     class HandController {
         <<MonoBehaviour>>
-        +Hand hand
-        +XRInputRouter inputRouter
-        -XRHandSide handSide
-        -Update() void
+        +XRHandSide handSide
+        +GameObject model
     }
-    
+
     HandController --> Hand : controls
-    HandController --> XRInputRouter : reads input from
+    HandController --> XRInputRouter : reads input
 ```
 
-## Composants Principaux
+## Hand (MonoBehaviour)
 
-### HandController
+`[RequireComponent(typeof(Animator))]`
 
-Composant "cerveau" qui fait le lien entre les inputs physiques et la représentation visuelle de la main.
+Visual hand representation managing animation and interactor references.
 
-- Lit les valeurs via `XRInputRouter` (ou `ActionBasedController`).
-- Met à jour les paramètres de l'Animator de la main :
-  - `Grip` (0-1) : Saisie (majeur, annulaire, auriculaire).
-  - `Trigger` (0-1) : Index.
-- Détecte l'état de Grab pour figer la main ou jouer une animation de saisie spécifique.
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `speed` | `float` | 2.5 | Animation blend speed |
+| `fingerTip` | `Transform` | | Fingertip transform for poke |
+| `disableCollider` | `bool` | false | Disable hand collider |
 
-### Hand
+**Animator Parameters:**
+- `Grip` (float 0-1): Finger curl for grip (middle, ring, pinky)
+- `Trigger` (float 0-1): Index finger curl
+- `Grab` (bool): Active grab state
 
-Représentation visuelle de la main. Gère l'Animator et les références aux interactors attachés à cette main.
+**Public Methods:**
 
-- **Animation** : Blend Tree mélangeant les états Open, Pinch (Trigger) et Fist (Grip).
-- **Attach Transform** : Gère dynamiquement le point d'attache pour que l'objet saisi s'aligne correctement avec la main virtuelle.
+| Method | Description |
+|--------|-------------|
+| `GetCollider()` | Returns hand mesh collider |
+| `ToggleMesh(bool)` | Shows/hides hand mesh renderer |
 
-## Configuration
+**Internal Methods:** `SetGrip(float)`, `SetTrigger(float)`, `SetGrab(bool)` - Called by HandController.
 
-Pour configurer une nouvelle main :
-1. Importer un modèle de main riggé.
-2. Créer un Animator Controller avec des paramètres `Grip` et `Trigger`.
-3. Ajouter le script `Hand`.
-4. Assigner les références `animator`.
-5. Sur le parent (Controller), ajouter `HandController` et lier la main.
+**Auto-setup in Start():** Creates a `PokeInteractor` child for fingertip interactions.
+
+## HandController (MonoBehaviour)
+
+Bridge between XR inputs and hand animation.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `handSide` | `XRHandSide` | Right | Left or Right hand |
+| `model` | `GameObject` | | Hand model GameObject |
+
+Reads Grip and Trigger values from `XRInputRouter` each frame. Detects grab state from `XRDirectInteractor` and calls `Hand.SetGrab()`.
+
+## Setup
+
+1. Import a rigged hand model
+2. Create an Animator Controller with `Grip`, `Trigger` (float) and `Grab` (bool) parameters
+3. Add `Hand` component to the hand mesh
+4. Add `HandController` to the controller parent, link the hand
+
+**Data flow:** `XRInputRouter` -> `HandController` -> `Hand` -> `Animator`
+
+## Source Files
+
+- `Runtime/Hands/Scripts/Hand.cs`
+- `Runtime/Hands/Scripts/HandController.cs`

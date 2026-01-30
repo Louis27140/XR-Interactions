@@ -1,77 +1,102 @@
 # Louis - XR Interactions
 
-Package Unity fournissant un système d'interactions XR avancé basé sur le XR Interaction Toolkit de Unity.
+Unity package providing an advanced VR interaction system built on top of the XR Interaction Toolkit.
 
 ## Version
 
-**0.1.0**
+**0.0.1**
 
-## Prérequis
+## Prerequisites
 
-- Unity 2022.3 ou supérieur
+- Unity 2022.3 or higher
 - XR Interaction Toolkit 3.2.2
-- [com.louis.xr.core](../com.louis.xr.core/README.md) 0.1.0
+- OpenXR >= 1.8.0
+- [com.louis.core](../com.louis.core/README.md) 0.0.1
 
 ## Installation
 
-1. Installer d'abord le package `com.louis.xr.core`
-2. Ouvrir le Package Manager dans Unity
-3. Sélectionner "Add package from disk..."
-4. Naviguer vers le fichier `package.json` de ce package
+1. Install `com.louis.core` first
+2. Open Package Manager in Unity
+3. Select "Add package from disk..."
+4. Navigate to this package's `package.json`
 
-## 📚 Systèmes disponibles
+## Systems
 
-| Système | Description | Documentation |
-|---------|-------------|---------------|
-| 🎮 **Grab** | Système modulaire de saisie (Direct, Remote HLA) | [📖 Documentation](Documentation/Grab.md) |
-| 🖐️ **Hands** | Animation procédurale des mains (Grip/Trigger) | [📖 Documentation](Documentation/Hands.md) |
-| 🎯 **Input** | Routeur centralisé, Context Stack et Haptique | [📖 Documentation](Documentation/Input.md) |
-| 🎚️ **Anchors** | Points de snap intelligents pour le grab | [📖 Documentation](Documentation/Anchors.md) |
-| 🚀 **Teleportation** | Locomotion par téléportation au joystick | [📖 Documentation](Documentation/Teleportation.md) |
-| 📦 **Inventory XR** | Slots physiques (sockets) pour l'inventaire | [📖 Documentation](Documentation/Inventory.md) |
-| ⌨️ **Keyboard XR** | Clavier virtuel auto-positionné | [📖 Documentation](Documentation/Keyboard.md) |
-| 🔧 **Tools XR** | Bridge pour outils activables (lampe, caméra) | [📖 Documentation](Documentation/Tools.md) |
-| 🐛 **Debug XR** | Activation du debugger in-VR | [📖 Documentation](Documentation/Debug.md) |
+| System | Description | Documentation |
+|--------|-------------|---------------|
+| **Grab** | Modular grab system (Direct, Remote HLA, Two-Hand, Socket) | [Documentation](Documentation/Grab.md) |
+| **Hands** | Procedural hand animation (Grip/Trigger blend) | [Documentation](Documentation/Hands.md) |
+| **Input** | Centralized XR input router, Context Stack, Haptics | [Documentation](Documentation/Input.md) |
+| **Anchors** | Smart snap points for grab positioning | [Documentation](Documentation/Anchors.md) |
+| **Teleportation** | Joystick-based teleportation locomotion | [Documentation](Documentation/Teleportation.md) |
+| **Inventory XR** | Physical slots (sockets) with shelf controller | [Documentation](Documentation/Inventory.md) |
+| **Keyboard XR** | Auto-positioned virtual keyboard | [Documentation](Documentation/Keyboard.md) |
+| **Tools XR** | Bridge for trigger-activated tools | [Documentation](Documentation/Tools.md) |
+| **Debug XR** | In-VR debugger activation | [Documentation](Documentation/Debug.md) |
 
-
-## 🏗️ Structure du Package
+## Package Structure
 
 ```
 com.louis.xr.interactions/
 ├── Runtime/
-│   ├── Grab/              # Système de grab modulaire
-│   ├── Hands/             # Animation des mains
-│   ├── Input/             # Routage des inputs
-│   ├── Inventory/         # Inventaire XR
-│   ├── Keyboard/          # Clavier virtuel XR
-│   ├── Teleport/          # Locomotion/téléportation
-│   ├── Tools/             # Outils XR
+│   ├── Grab/              # Modular grab system + logics
+│   ├── Hands/             # Hand animation
+│   ├── Input/             # Input routing + haptics
+│   ├── Inventory/         # XR inventory
+│   ├── Keyboard/          # XR keyboard
+│   ├── Teleport/          # Teleportation
+│   ├── Tools/             # XR tools
 │   └── Utils/
-│       ├── Anchors/       # Système d'anchors
-│       └── Debug/         # Debug XR
+│       ├── Anchors/       # Anchor system
+│       ├── Debug/         # XR debug
+│       └── Rig/           # XR rig reference
 ├── Editor/
-│   └── Grab/              # Éditeurs custom pour grab
-├── Documentation/         # Documentation détaillée
-│   ├── Grab.md
-│   ├── Hands.md
-│   ├── Input.md
-│   ├── Inventory.md
-│   ├── Keyboard.md
-│   ├── Teleportation.md
-│   ├── Tools.md
-│   ├── Anchors.md
-│   └── Debug.md
-└── Samples~/              # Exemples (Rig, Door, Teleportation)
+│   ├── Grab/              # Custom grab editors
+│   ├── Input/             # Input router editor
+│   └── Utils/             # Utility editors
+├── Documentation/
+└── Samples~/
 ```
+
+## Samples
+
+| Sample | Contents |
+|--------|----------|
+| **Rig** | Pre-configured XR Origin with hands, input, haptics |
+| **Door** | HingeOpenable + XRHandleInteractable setup |
+| **Teleportation** | Teleportation provider and areas |
+| **Inventory** | Shelf slots with inventory behaviour |
+
+**Import:** Package Manager > Louis XR Interactions > Samples > Import
+
+## Namespaces
+
+| Namespace | Contents |
+|-----------|----------|
+| `Louis.XR.Interactions.Grab` | Grab system and context |
+| `Louis.XR.Interactions.Grab.Logic` | Grab logic base classes |
+| `Louis.XR.Interactions.Grab.Logic.Direct` | Direct grab logics |
+| `Louis.XR.Interactions.Grab.Logic.Remote` | Remote grab logics |
+| `Louis.XR.Interactions.Grab.Logic.Socket` | Socket grab logics |
+| `Louis.XR.Interactions.Input` | XRInputRouter, XRHandSide, XRButtonType |
+| `Louis.XR.Interactions.Input.Feedback` | XRHaptic, XRHapticPreset |
+| `Louis.XR.Interactions.Hands` | Hand, HandController |
+| `Louis.XR.Interactions.Inventory` | InventoryShelfSlot, InventoryShelfController |
+| `Louis.XR.Interactions.Locomotion` | XRTeleportationManager |
+| `Louis.XR.Interactions.Keyboard` | XRKeyboardManager |
+| `Louis.XR.Interactions.Tools` | XRTriggerToolHandler |
+| `Louis.XR.Interactions.Utils.Anchors` | XRAnchor, AnchorsUtils |
+| `Louis.XR.Interactions.Utils.Debugger` | XRDebugLogger |
+| `Louis.XR.Interactions.Utils.Rig` | XRRigReference |
 
 ## License
 
 MIT
 
-## Auteur
+## Author
 
 Louis
 
 ## Changelog
 
-Voir [CHANGELOG.md](CHANGELOG.md)
+See [CHANGELOG.md](CHANGELOG.md)

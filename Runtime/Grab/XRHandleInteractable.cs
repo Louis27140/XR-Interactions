@@ -1,4 +1,3 @@
-using Louis.Interactions.Hands;
 using Louis.XR.Interactions.Hands;
 using System.Collections;
 using System.Collections.Generic;
@@ -96,8 +95,6 @@ namespace Louis.XR.Interactions.Grab
 
         private void EnableIgnoreCollisions(UnityEngine.XR.Interaction.Toolkit.Interactors.IXRInteractor interactor)
         {
-            Debug.Log("EnableIgnoreCollisions called");
-
             var interactorCollider = GetInteractorCollider(interactor);
             if (interactorCollider == null) return;
 

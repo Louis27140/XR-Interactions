@@ -5,10 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Fixed
-- Correction du warning lors de la non-sélection du contexte "Default" dans InputContextMaskDrawer
-
-## [0.0.1] - 2026-01-XX
+## [0.0.1] - 2026-01-26
 
 ### Added
 - **Input System**: Intégration du nouveau système d'input
@@ -47,6 +44,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Tools.md - Système d'outils VR
   - Anchors.md - Système d'ancres
   - Debug.md - Outils de débogage
+
+### Fixed
+- Correction du warning lors de la non-sélection du contexte "Default" dans InputContextMaskDrawer
 
 ### Changed
 - Mise à jour du README.md

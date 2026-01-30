@@ -1,4 +1,4 @@
-using Louis.Interactions.Hands;
+using Louis.XR.Interactions.Hands;
 using Louis.XR.Interactions.Input;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;

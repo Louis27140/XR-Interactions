@@ -1,6 +1,8 @@
-# Système d'Inventaire XR
+# XR Inventory System
 
-Intégration VR du système d'inventaire `Louis.Core.Inventory`. Permet de stocker physiquement des objets dans des slots (sockets) et de synchroniser l'état avec le système de données.
+[Back to README](../README.md)
+
+VR integration of the `Louis.Core.Inventory` system. Provides physical slots (sockets) for storing items and a shelf controller for positioning/animation.
 
 ## Architecture
 
@@ -13,39 +15,70 @@ classDiagram
         +InventoryBehaviour inventoryBehaviour
         +TMP_Text itemName
         +bool IsEmpty
-        -InventoryItem currentItem
         +SetActive(active) void
     }
-    
+
+    class InventoryShelfController {
+        <<MonoBehaviour>>
+        -Transform shelf
+        -RelativePositioningConfig positioningConfig
+        -BoolInputDefinition toggleInventoryInput
+        -float animationDuration
+        -AnimationCurve appearCurve
+    }
+
     class InventoryBehaviour {
         <<from Core>>
         +IInventory Inventory
     }
-    
-    class XRSocketInteractor {
-        <<Unity XRI>>
-    }
-    
-    InventoryShelfSlot --> XRSocketInteractor : uses
+
     InventoryShelfSlot --> InventoryBehaviour : updates
+    InventoryShelfController --> InventoryShelfSlot : manages
 ```
 
-## Composants Principaux
+## InventoryShelfSlot (MonoBehaviour)
 
-### InventoryShelfSlot
+A physical slot in the world (belt, backpack, shelf).
 
-Un slot physique dans le monde (ex: sur une ceinture, dans un sac à dos, sur une étagère).
-- Utilise un **XRSocketInteractor** pour attirer et fixer les objets.
-- Détecte l'objet entré et tente de l'ajouter à l'inventaire logique via `InventoryBehaviour`.
-- Si l'ajout à l'inventaire échoue (inventaire plein), l'objet est rejeté.
-- Si l'ajout réussit, l'objet est "stocké" (désactivé ou gardé dans le socket selon la configuration).
+| Field | Type | Description |
+|-------|------|-------------|
+| `socket` | `XRSocketInteractor` | Socket that attracts items |
+| `snapPoint` | `Transform` | Snap position |
+| `inventoryBehaviour` | `InventoryBehaviour` | Logical inventory reference |
+| `itemName` | `TMP_Text` | Item name display |
 
-## Workflow
+**Properties:** `bool IsEmpty { get; }`
+**Methods:** `void SetActive(bool active)` - Enable/disable item grab.
 
-1. Le joueur relâche un `InventoryItem` près du slot.
-2. Le `XRSocketInteractor` capture l'objet.
-3. `InventoryShelfSlot` reçoit l'event `SelectEntered`.
-4. Il récupère la définition de l'item (`InventoryItemDefinition`) depuis l'objet.
-5. Il appelle `inventoryBehaviour.Inventory.TryAdd(item, 1)`.
-6. Si OK : L'objet est logiquement dans l'inventaire.
-7. Si KO : L'objet est éjecté du socket.
+### Workflow
+
+1. Player releases an `InventoryItem` near the slot
+2. `XRSocketInteractor` captures the object
+3. Slot receives `SelectEntered` event
+4. Reads `InventoryItemDefinition` from the object
+5. Calls `inventoryBehaviour.Inventory.TryAdd(item, 1)`
+6. **Success:** Item stored in inventory
+7. **Failure:** Item ejected from socket (or redirected to empty slot)
+
+## InventoryShelfController (MonoBehaviour)
+
+Controls shelf visibility, positioning, and animation.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `shelf` | `Transform` | | Shelf root transform |
+| `positioningConfig` | `RelativePositioningConfig` | | Positioning relative to head |
+| `useHeadReference` | `bool` | true | Use camera as reference |
+| `animationDuration` | `float` | 0.3 | Show/hide animation time |
+| `appearCurve` | `AnimationCurve` | EaseInOut | Animation curve |
+| `handType` | `XRHandSide` | Left | Input hand |
+| `toggleInventoryInput` | `BoolInputDefinition` | | Toggle button input |
+
+**Property:** `Transform ReferenceTransform { get; }` - Returns camera or rig transform.
+
+Toggle input opens/closes the shelf with a scale animation. Uses `RelativePositioning` from core package for smooth follow.
+
+## Source Files
+
+- `Runtime/Inventory/InventoryShelfSlot.cs`
+- `Runtime/Inventory/InventoryShelfController.cs`

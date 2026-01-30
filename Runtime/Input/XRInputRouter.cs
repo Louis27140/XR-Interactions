@@ -466,7 +466,9 @@ namespace Louis.XR.Interactions.Input
                 }
             }
             
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
             Debug.Log($"[XRInputRouter] Chargé {actionCache.Count} actions depuis les ActionMaps");
+#endif
         }
 
         // -------------------------------------------------------

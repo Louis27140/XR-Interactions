@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Louis.Core.Input;
-using Louis.XR.Core.Utils.Positioning;
+using Louis.Core.Utils.Positioning;
 using Louis.XR.Interactions.Input;
 using Louis.XR.Interactions.Utils.Rig;
 using UnityEngine;
@@ -50,7 +50,6 @@ namespace Louis.XR.Interactions.Inventory
             {
                 // Définir la main (0=Left, 1=Right)
                 toggleInventoryInput.SetChannel((int)handType);
-                Debug.Log($"[InventoryShelfController] Assigned toggle input to {handType} hand.");
                 toggleInventoryInput.OnPressed += OnToggleInventory;
             }
         }
@@ -110,8 +109,6 @@ namespace Louis.XR.Interactions.Inventory
 
             isVisible = !isVisible;
             animationTimer = 0f;
-            
-            Debug.Log($"[InventoryShelfController] {(isVisible ? "Afficher" : "Cacher")} l'inventaire.");
 
             shelfSlots.ForEach(slot => slot.SetActive(isVisible));
 

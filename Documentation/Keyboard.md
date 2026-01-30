@@ -1,6 +1,8 @@
-# Clavier XR
+# XR Keyboard System
 
-Système d'affichage de clavier virtuel en réalité virtuelle, s'adaptant à la position de l'utilisateur.
+[Back to README](../README.md)
+
+Auto-positioned virtual keyboard for VR text input.
 
 ## Architecture
 
@@ -11,32 +13,49 @@ classDiagram
         +Camera xrCamera
         +GameObject keyboardPrefab
         +KeyboardController keyboardController
+        +XRUIInputModule inputModule
         +float distance
-        +Vector3 offset
-        -TMP_InputField currentField
-        +ShowKeyboard(inputField) void
-        +HideKeyboard() void
+        +Vector2 offset
+        +OpenKeyboard() void
+        +CloseKeyboard() void
     }
-    
+
     class KeyboardController {
         <<from Core>>
         +string CurrentText
     }
-    
+
     XRKeyboardManager --> KeyboardController : manages
 ```
 
-## XRKeyboardManager
+## XRKeyboardManager (MonoBehaviour)
 
-Composant responsable de l'apparition et du positionnement du clavier.
+Handles keyboard appearance and positioning in VR.
 
-- **Auto-détection** : Écoute les événements de sélection sur les `TMP_InputField` (via `XRUIInputModule` ou système d'event Unity).
-- **Positionnement** : Fait apparaître le clavier devant la caméra VR (`xrCamera`) à une `distance` configurée, orienté vers l'utilisateur.
-- **Synchronisation** : Tout ce qui est tapé sur le clavier virtuel (`KeyboardController` du Core) est injecté dans le `currentField` actif.
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `xrCamera` | `Camera` | | VR camera reference |
+| `keyboardPrefab` | `GameObject` | | Keyboard prefab |
+| `keyboardController` | `KeyboardController` | | Controller from core |
+| `inputModule` | `XRUIInputModule` | | XR UI input module |
+| `distance` | `float` | 0.5 | Distance from camera |
+| `offset` | `Vector2` | (0, -0.2) | Position offset (x, y) |
 
-## Utilisation
+**Methods:**
+| Method | Description |
+|--------|-------------|
+| `OpenKeyboard()` | Shows and positions keyboard |
+| `CloseKeyboard()` | Hides keyboard |
 
-1. Ajouter `XRKeyboardManager` à la scène (souvent sur le Rig ou un manager global).
-2. Assigner le prefab du clavier (contenant le script `KeyboardController`).
-3. Assigner la caméra VR.
-4. Les champs de texte `TMP_InputField` dans les Canvas (World Space) déclencheront automatiquement le clavier lorsqu'ils sont cliqués.
+**Auto-detection:** Listens for pointer events on `TMP_InputField` elements. When a field is clicked, the keyboard appears in front of the VR camera at the configured distance. Text input is synchronized with the active field.
+
+## Setup
+
+1. Add `XRKeyboardManager` to the scene (on Rig or global manager)
+2. Assign keyboard prefab (containing `KeyboardController`)
+3. Assign VR camera
+4. `TMP_InputField` in World Space Canvas will auto-trigger the keyboard on click
+
+## Source Files
+
+- `Runtime/Keyboard/XRKeyboardManager.cs`

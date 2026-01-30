@@ -98,8 +98,6 @@ namespace Louis.XR.Interactions.Utils.Anchors
                 }
             }
 
-            Debug.Log($"[AnchorsUtils] Selected inventory anchor: {(best != null ? best.name : "none")} with priority {bestPrio}");
-
             return best;
         }
 
@@ -112,10 +110,7 @@ namespace Louis.XR.Interactions.Utils.Anchors
             Vector3 interactorPos)
         {
             if (anchors == null || anchors.Count == 0)
-            {
-                Debug.LogError($"[AnchorsUtils] Aucun anchor disponible pour SelectClosestAnchor.");
                 return null;
-            }
 
             XRAnchor closest = null;
             float closestDistSqr = float.MaxValue;
@@ -132,11 +127,6 @@ namespace Louis.XR.Interactions.Utils.Anchors
                     closestDistSqr = distSqr;
                     closest = anchor;
                 }
-            }
-
-            if (closest != null)
-            {
-                Debug.LogWarning($"[AnchorsUtils] Fallback: anchor le plus proche sélectionné: {closest.name} (distance: {Mathf.Sqrt(closestDistSqr):F3}m)");
             }
 
             return closest;
