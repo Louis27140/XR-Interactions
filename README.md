@@ -20,6 +20,14 @@ Unity package providing an advanced VR interaction system built on top of the XR
 3. Select "Add package from disk..."
 4. Navigate to this package's `package.json`
 
+## Demo
+
+<p align="center">
+  <img src="docs/inventory.gif" width="44%" />
+  <span style="display:inline-block; width:20px;"></span>
+  <img src="docs/remote-grab.gif" width="44%" />
+</p>
+
 ## Systems
 
 | System | Description | Documentation |
